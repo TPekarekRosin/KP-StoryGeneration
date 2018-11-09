@@ -1,0 +1,5 @@
+#! /usr/bin/env bash
+
+CURRDIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+source "${CURRDIR}/.virtualenv/bin/activate"
+
