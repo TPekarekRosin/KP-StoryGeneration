@@ -4,6 +4,11 @@
 Created on Wed Nov 14 19:49:38 2018
 
 @author: Amy Bryce, Theresa Pekarek-Rosin
+https://medium.com/coinmonks/word-level-lstm-text-generator-creating-automatic-song-lyrics-with-neural-networks-b8a1617104fb
+https://github.com/enriqueav/lstm_lyrics
+
+Inspiration for next steps:
+https://medium.freecodecamp.org/applied-introduction-to-lstms-for-text-generation-380158b29fb3
 """
 
 import numpy as np
@@ -56,11 +61,10 @@ def generator(sentence_list, next_word_list, batch_size):
             index = index + 1
         yield x, y
 
-
 def get_model(dropout=0.2):
     print('Build model...')
     model = Sequential()
-    model.add(Embedding(input_dim=len(words), output_dim=1024))
+    model.add(Embedding(input_dim=len(words), output_dim=1024)) #turns indexes into dense vectors of fixed size
     model.add(Bidirectional(LSTM(128)))
     if dropout > 0:
         model.add(Dropout(dropout))
@@ -112,6 +116,7 @@ def on_epoch_end(epoch, logs):
 
 if __name__ == "__main__":
     # preprocessing
+    #TODO: work out a way to circumvent the hyphenation problem 
     text_raw = (open("sample.txt").read())
     text_raw = text_raw.lower()
     text_raw = text_raw.replace('\n', ' \n ')
