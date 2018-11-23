@@ -13,19 +13,14 @@ Inspiration for next steps:
 https://medium.freecodecamp.org/applied-introduction-to-lstms-for-text-generation-380158b29fb3
 """
 
-import numpy as np
-#import pandas as pd
-#import tensorflow as tf
-from keras.models import Sequential
-from keras.layers import Dense, Activation, Dropout
-from keras.layers import LSTM, Bidirectional, Embedding
-#from keras.optimizers import RMSprop
-from keras.callbacks import LambdaCallback, ModelCheckpoint, EarlyStopping
-from keras.utils import np_utils
 import time
-#import random
-#import sys
-#import io
+
+import numpy as np
+
+from keras.callbacks import EarlyStopping, LambdaCallback, ModelCheckpoint
+from keras.layers import Activation, Bidirectional, Dense, Dropout, Embedding, LSTM
+from keras.models import Sequential
+from keras.utils import np_utils
 
 
 #constants 
