@@ -4,8 +4,10 @@
 Created on Wed Nov 14 19:49:38 2018
 
 @author: Amy Bryce, Theresa Pekarek-Rosin
-https://medium.com/coinmonks/word-level-lstm-text-generator-creating-automatic-song-lyrics-with-neural-networks-b8a1617104fb
-https://github.com/enriqueav/lstm_lyrics
+
+Inspired by enrique a.:
+    Blog: https://medium.com/coinmonks/word-level-lstm-text-generator-creating-automatic-song-lyrics-with-neural-networks-b8a1617104fb
+    Source code: https://github.com/enriqueav/lstm_lyrics
 
 Inspiration for next steps:
 https://medium.freecodecamp.org/applied-introduction-to-lstms-for-text-generation-380158b29fb3
