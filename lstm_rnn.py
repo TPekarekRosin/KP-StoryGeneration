@@ -23,11 +23,11 @@ from keras.models import Sequential
 from keras.utils import np_utils
 
 
-#constants 
-MIN_WORD_FREQUENCY = 1
-SEQUENCE_LEN = 10
-STEP = 1
-BATCH_SIZE = 32
+# SET CONSTANTS
+MIN_WORD_FREQUENCY = 1 # how often a word appears in the original text
+SEQUENCE_LEN = 10 # number of words used in the seeded sentence
+STEP = 1 # increment by a number of words when sequencing the text
+BATCH_SIZE = 32 #
 
 # split the data into test and train data -> default: 98/2 -> for small sample 90/10
 def shuffle_and_split_training_set(sentences_original, next_original, percentage_test=10):
