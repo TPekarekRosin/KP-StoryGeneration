@@ -29,7 +29,8 @@ SEQUENCE_LEN = 10 # number of words used in the seeded sentence
 STEP = 1 # increment by a number of words when sequencing the text
 BATCH_SIZE = 32 #
 
-# split the data into test and train data -> default: 98/2 -> for small sample 90/10
+
+# TODO - EXPERIMENT: try using different percentages of train and test data
 def shuffle_and_split_training_set(sentences_original, next_original, percentage_test=10):
     tmp_sentences = []
     tmp_next_word = []
@@ -41,11 +42,11 @@ def shuffle_and_split_training_set(sentences_original, next_original, percentage
     x_train, x_test = tmp_sentences[:cut_index], tmp_sentences[cut_index:]
     y_train, y_test = tmp_next_word[:cut_index], tmp_next_word[cut_index:]
 
-    #print("Size of training set = %d" % len(x_train))
-    #print("Size of test set = %d" % len(y_test))
     return (x_train, y_train), (x_test, y_test)
 
-# Data generator for fit and evaluate
+
+# Use a data generator to feed the model with chunks of the training set,
+# one for each batch, instead of feeding everything at once.
 def generator(sentence_list, next_word_list, batch_size):
     index = 0
     while True:
@@ -58,6 +59,8 @@ def generator(sentence_list, next_word_list, batch_size):
             index = index + 1
         yield x, y
 
+
+# TODO - EXPERIMENT: try different network structures and parameters
 def get_model(dropout=0.2):
     print('Build model...')
     model = Sequential()
@@ -68,6 +71,7 @@ def get_model(dropout=0.2):
     model.add(Dense(len(words)))
     model.add(Activation('softmax'))
     return model
+
 
 def sample(preds, temperature=1.0):
     # helper function to sample an index from a probability array
