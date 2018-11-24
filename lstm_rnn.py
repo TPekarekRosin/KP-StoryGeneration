@@ -4,35 +4,33 @@
 Created on Wed Nov 14 19:49:38 2018
 
 @author: Amy Bryce, Theresa Pekarek-Rosin
-https://medium.com/coinmonks/word-level-lstm-text-generator-creating-automatic-song-lyrics-with-neural-networks-b8a1617104fb
-https://github.com/enriqueav/lstm_lyrics
+
+Inspired by enrique a.:
+    Blog: https://medium.com/coinmonks/word-level-lstm-text-generator-creating-automatic-song-lyrics-with-neural-networks-b8a1617104fb
+    Source code: https://github.com/enriqueav/lstm_lyrics
 
 Inspiration for next steps:
 https://medium.freecodecamp.org/applied-introduction-to-lstms-for-text-generation-380158b29fb3
 """
 
-import numpy as np
-#import pandas as pd
-#import tensorflow as tf
-from keras.models import Sequential
-from keras.layers import Dense, Activation, Dropout
-from keras.layers import LSTM, Bidirectional, Embedding
-#from keras.optimizers import RMSprop
-from keras.callbacks import LambdaCallback, ModelCheckpoint, EarlyStopping
-from keras.utils import np_utils
 import time
-#import random
-#import sys
-#import io
+
+import numpy as np
+
+from keras.callbacks import EarlyStopping, LambdaCallback, ModelCheckpoint
+from keras.layers import Activation, Bidirectional, Dense, Dropout, Embedding, LSTM
+from keras.models import Sequential
+from keras.utils import np_utils
 
 
-#constants 
-MIN_WORD_FREQUENCY = 1
-SEQUENCE_LEN = 10
-STEP = 1
-BATCH_SIZE = 32
+# SET CONSTANTS
+MIN_WORD_FREQUENCY = 1 # how often a word appears in the original text
+SEQUENCE_LEN = 10 # number of words used in the seeded sentence
+STEP = 1 # increment by a number of words when sequencing the text
+BATCH_SIZE = 32 #
 
-# split the data into test and train data -> default: 98/2 -> for small sample 90/10
+
+# TODO - EXPERIMENT: try using different percentages of train and test data
 def shuffle_and_split_training_set(sentences_original, next_original, percentage_test=10):
     tmp_sentences = []
     tmp_next_word = []
@@ -44,11 +42,11 @@ def shuffle_and_split_training_set(sentences_original, next_original, percentage
     x_train, x_test = tmp_sentences[:cut_index], tmp_sentences[cut_index:]
     y_train, y_test = tmp_next_word[:cut_index], tmp_next_word[cut_index:]
 
-    #print("Size of training set = %d" % len(x_train))
-    #print("Size of test set = %d" % len(y_test))
     return (x_train, y_train), (x_test, y_test)
 
-# Data generator for fit and evaluate
+
+# Use a data generator to feed the model with chunks of the training set,
+# one for each batch, instead of feeding everything at once.
 def generator(sentence_list, next_word_list, batch_size):
     index = 0
     while True:
@@ -61,6 +59,8 @@ def generator(sentence_list, next_word_list, batch_size):
             index = index + 1
         yield x, y
 
+
+# TODO - EXPERIMENT: try different network structures and parameters
 def get_model(dropout=0.2):
     print('Build model...')
     model = Sequential()
@@ -71,6 +71,7 @@ def get_model(dropout=0.2):
     model.add(Dense(len(words)))
     model.add(Activation('softmax'))
     return model
+
 
 def sample(preds, temperature=1.0):
     # helper function to sample an index from a probability array
@@ -115,68 +116,71 @@ def on_epoch_end(epoch, logs):
 
 
 if __name__ == "__main__":
-    # preprocessing
-    #TODO: work out a way to circumvent the hyphenation problem 
+    # PREPROCESS THE DATA
+    # TODO: work out a way to circumvent the hyphenation problem
     text_raw = (open("sample.txt").read())
+    # make all letters lowercase
     text_raw = text_raw.lower()
+    # preemptively add a space after each newline so we can parse them as words later
     text_raw = text_raw.replace('\n', ' \n ')
-    #print ('length: ', len(sample_raw))
-    
-    # turns text in array containing the corpus word for word
+
+    # parse each word in the text (using a python3 list comprehension data structure)
     text_in_words = [w for w in text_raw.split(' ') if w.strip() != '' or w == '\n']
-    #print ('length: ', len(sample_in_words))
-    
-    # calculating the word frequency
+
+    # calculate the word frequency
     word_freq = {}
     for word in text_in_words:
         word_freq[word] = word_freq.get(word, 0) + 1
-    
-    # set the min word frequency to 1 for now
-    ignored_words = set()
+
+    # set the minimum word frequency
+    # TODO - EXPERIMENT: try using different frequencies
+    # create a set of ignored words that don't meet the minimum word frequency
+    ignored_words = set() # set(): an unordered list of unique elements
     for k, v in word_freq.items():
         if word_freq[k] < MIN_WORD_FREQUENCY:
             ignored_words.add(k)
-      
+
+    # create a set of words parsed from the text
     words = set(text_in_words)
+    # remove ignored words from the word set, then sort the set
     words = sorted(set(words) - ignored_words)
     
     word_indices = dict((c, i) for i, c in enumerate(words))
     indices_word = dict((i, c) for i, c in enumerate(words))
-    
-    # sequencing the text
+
+    # SEQUENCE THE TEXT
     sentences = []
     next_words = []
     ignored = 0
-    for i in range(0, len(text_in_words) - SEQUENCE_LEN, STEP):
-        # Only add sequences where no word is in ignored_words
+    for i in range(0, len(text_in_words) - SEQUENCE_LEN, STEP): # TODO: STEP could be hard-coded to = 1
+        # Only add sequences to the sentences list where no word is in ignored_words
         if len(set(text_in_words[i: i+SEQUENCE_LEN+1]).intersection(ignored_words)) == 0:
             sentences.append(text_in_words[i: i + SEQUENCE_LEN])
             next_words.append(text_in_words[i + SEQUENCE_LEN])
         else:
-            ignored = ignored+1
-    
-    # split into train and test data
+            ignored = ignored + 1
+
+    # SPLIT DATA INTO TRAIN AND TEST DATA
     (sentences, next_words), (sentences_test, next_words_test) = shuffle_and_split_training_set(sentences, next_words)
-    
-#    # Building the model
-#    model = Sequential()
-#    model.add(LSTM(128, input_shape=(SEQUENCE_LEN, len(words))))
-#    model.add(Dense(len(words)))
-#    model.add(Activation('softmax'))
-    
+
+    # BUILD AND COMPILE THE MODEL
     model = get_model()
     model.compile(loss='sparse_categorical_crossentropy', optimizer="adam", metrics=['accuracy'])
 
+    # CREATE CALLBACKS FOR WHEN WE RUN THE MODEL
+    # set the file path for storing the output from the model
     file_path = "./checkpoints/LSTM_LYRICS-epoch{epoch:03d}-words%d-sequence%d-minfreq%d-loss{loss:.4f}-acc{acc:.4f}-val_loss{val_loss:.4f}-val_acc{val_acc:.4f}" % (
         len(words),
         SEQUENCE_LEN,
         MIN_WORD_FREQUENCY
     )
-    checkpoint = ModelCheckpoint(file_path, monitor='val_acc', save_best_only=True)
+    checkpoint = ModelCheckpoint(file_path, monitor='val_acc', save_best_only=True) # save the weights every epoch
     print_callback = LambdaCallback(on_epoch_end=on_epoch_end)
-    early_stopping = EarlyStopping(monitor='val_acc', patience=20)
+    early_stopping = EarlyStopping(monitor='val_acc', patience=20) # halt the training if there no gain in the loss in 5 epochs
     callbacks_list = [checkpoint, print_callback, early_stopping]
-    
+
+    # SET THE TRAINING PARAMETERS, THEN FIT THE MODEL
+    # TODO - EXPERIMENT: try training with different # of batch sizes and epochs
     filename = "generated_text_" + str(time.time())
     examples_file = open("./gentext/"+filename, "w")
     model.fit_generator(generator(sentences, next_words, BATCH_SIZE),
