@@ -13,6 +13,7 @@ Inspiration for next steps:
 https://medium.freecodecamp.org/applied-introduction-to-lstms-for-text-generation-380158b29fb3
 """
 
+import sys
 import time
 
 import numpy as np
@@ -28,6 +29,73 @@ MIN_WORD_FREQUENCY = 1 # how often a word appears in the original text
 SEQUENCE_LEN = 10 # number of words used in the seeded sentence
 STEP = 1 # increment by a number of words when sequencing the text
 BATCH_SIZE = 32 #
+
+
+def preprocess(text):
+    # First split the text into words using spaces as a delimter.
+    words = text.split(' ')
+
+    # Now search through each 'word' and turn any empty strings into
+    # a space (we keep these to indicate indenting paragraphs, quotations,
+    # etc. for style detection).
+    _words = []
+    for word in words:
+        if word == '':
+            _words.append(' ')
+        else:
+            _words.append(word)
+    words = _words
+
+    # Now search through each 'word' and find instances where a
+    # paragraph had existed (i.e. where there is now a double '\n\n').
+    # e.g. 'word\n\nword'. Replace these instances with a separate
+    # word of just '\n'.
+    _words = []
+    for word in words:
+        while '\n\n' in word:
+            w, word = word.split('\n\n', 1)
+            if w != '':
+                _words.append(w)
+            _words.append('\n')
+        if word != '':
+            _words.append(word)
+    words = _words
+
+    # Now search through each word and find instances where the last word in
+    # a line ends in a '-'. This indicates that the remainder of that word is
+    # on the next line and needs to be recombined with the beginning of the
+    # word on this line. e.g. "gentle-\nman" --> "gentleman".
+    _words = []
+    for word in words:
+        if '-\n' in word:
+            # Split the word by '-\n' and combine the two resulting words
+            # back together without the '-\n'.
+            word = "".join(word.split('-\n'))
+        _words.append(word)
+    words = _words
+
+    # Now split any remaining words that have '\n' in them into two
+    # separate words.
+    _words = []
+    for word in words:
+        if '\n' in word and '\n' != word:
+            for w in word.split('\n'):
+                if w != '':
+                    _words.append(w)
+        else:
+            _words.append(word)
+    words = _words
+
+    # Now split each word to pull out any punctutation into its own word.
+    _words = []
+    for word in words:
+        for w in re.split("([^\w\'\-])", word):
+            if w != '':
+                _words.append(w)
+    words = _words
+
+    # Return the preprocessed list of words from the text.
+    return words
 
 
 # TODO - EXPERIMENT: try using different percentages of train and test data
@@ -117,15 +185,11 @@ def on_epoch_end(epoch, logs):
 
 if __name__ == "__main__":
     # PREPROCESS THE DATA
-    # TODO: work out a way to circumvent the hyphenation problem
-    text_raw = (open("sample.txt").read())
-    # make all letters lowercase
-    text_raw = text_raw.lower()
-    # preemptively add a space after each newline so we can parse them as words later
-    text_raw = text_raw.replace('\n', ' \n ')
-
-    # parse each word in the text (using a python3 list comprehension data structure)
-    text_in_words = [w for w in text_raw.split(' ') if w.strip() != '' or w == '\n']
+    # pass in the text file name as the first argument
+    # e.g. `$ python lstm_rnn.py sample1.txt`
+    filename = sys.argv[1]
+    with open(filename) as file:
+        text_in_words = preprocess(file.read())
 
     # calculate the word frequency
     word_freq = {}
