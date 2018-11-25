@@ -13,6 +13,7 @@ Inspiration for next steps:
 https://medium.freecodecamp.org/applied-introduction-to-lstms-for-text-generation-380158b29fb3
 """
 
+import re
 import sys
 import time
 
@@ -32,7 +33,13 @@ BATCH_SIZE = 32 #
 
 
 def preprocess(text):
-    # First split the text into words using spaces as a delimter.
+    # First, bring all words split across lines back together.
+    # This also accounts for multiple new lines and indents between when the
+    # word on the first line ends and the rest of the word is later on.
+    # e.g. "exagg-\n\n    erated" --> "exaggerated\n\n    "
+    text = re.sub(r'(.*)-(\n\s*)([^\s]+)(.*)', r'\1\3\2\4', text)
+
+    # Now split the text into words using spaces as a delimter.
     words = text.split(' ')
 
     # Now search through each 'word' and turn any empty strings into
@@ -59,19 +66,6 @@ def preprocess(text):
             _words.append('\n')
         if word != '':
             _words.append(word)
-    words = _words
-
-    # Now search through each word and find instances where the last word in
-    # a line ends in a '-'. This indicates that the remainder of that word is
-    # on the next line and needs to be recombined with the beginning of the
-    # word on this line. e.g. "gentle-\nman" --> "gentleman".
-    _words = []
-    for word in words:
-        if '-\n' in word:
-            # Split the word by '-\n' and combine the two resulting words
-            # back together without the '-\n'.
-            word = "".join(word.split('-\n'))
-        _words.append(word)
     words = _words
 
     # Now split any remaining words that have '\n' in them into two
