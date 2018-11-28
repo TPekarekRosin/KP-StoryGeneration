@@ -35,9 +35,9 @@ BATCH_SIZE = 32 #
 def preprocess(text):
     # First, bring all words split across lines back together.
     # This also accounts for multiple new lines and indents between when the
-    # word on the first line ends and the rest of the word is later on.
-    # e.g. "exagg-\n\n    erated" --> "exaggerated\n\n    "
-    text = re.sub(r'(.*)-(\n\s*)([^\s]+)(.*)', r'\1\3\2\4', text)
+    # word on the first line ends and the rest of the word is later on.
+    # e.g. "exagg-\n\n    erated" --> "exaggerated\n\n    "
+    text = re.sub(r'(.*)-(\n\s*)([^\s]+)(.*)', r'\1\3\2\4', text)
 
     # Now split the text into words using spaces as a delimter.
     words = text.split(' ')
@@ -227,7 +227,7 @@ if __name__ == "__main__":
 
     # CREATE CALLBACKS FOR WHEN WE RUN THE MODEL
     # set the file path for storing the output from the model
-    file_path = "./checkpoints/LSTM_LYRICS-epoch{epoch:03d}-words%d-sequence%d-minfreq%d-loss{loss:.4f}-acc{acc:.4f}-val_loss{val_loss:.4f}-val_acc{val_acc:.4f}" % (
+    file_path = "./checkpoints/LSTM_Sherlock-epoch{epoch:03d}-words%d-sequence%d-minfreq%d-loss{loss:.4f}-acc{acc:.4f}-val_loss{val_loss:.4f}-val_acc{val_acc:.4f}" % (
         len(words),
         SEQUENCE_LEN,
         MIN_WORD_FREQUENCY
