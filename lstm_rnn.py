@@ -33,57 +33,51 @@ BATCH_SIZE = 32 #
 
 
 def preprocess(text):
-    # First, bring all words split across lines back together.
+    # First, bring all words separated across lines back together.
     # This also accounts for multiple new lines and indents between when the
-    # word on the first line ends and the rest of the word is later on.
-    # e.g. "exagg-\n\n    erated" --> "exaggerated\n\n    "
-    text = re.sub(r'(.*)-(\n\s*)([^\s]+)(.*)', r'\1\3\2\4', text)
+    # word on the first line ends and the rest of the word is later on
+    # (e.g. "exagg-\n\n    erated" --> "exaggerated\n\n    ").
+    text = re.sub(r'(.*)-(\n\s*)([^\s]+)', r'\1\3\2', text)
 
-    # Now split the text into words using spaces as a delimter.
-    words = text.split(' ')
-
-    # Now search through each 'word' and turn any empty strings into
-    # a space (we keep these to indicate indenting paragraphs, quotations,
-    # etc. for style detection).
+    # Use regular expressions to split the text by \n followed by at least one
+    # whitespace character; this allows us to keep the \n's and subsequent
+    # whitespace characters. Essentially, we are splitting the text into
+    # paragraph strings.
     _words = []
-    for word in words:
-        if word == '':
-            _words.append(' ')
-        else:
-            _words.append(word)
+    for w in re.split(r'(\n\s+)', text):
+        if w != '':
+            _words.append(w)
     words = _words
 
-    # Now search through each 'word' and find instances where a
-    # paragraph had existed (i.e. where there is now a double '\n\n').
-    # e.g. 'word\n\nword'. Replace these instances with a separate
-    # word of just '\n'.
+    # Use regular expressions to split the list of words (i.e. paragraphs) by
+    # any whitespaces (e.g. \n, space, etc.) that exist between non-whitespace
+    # characters and remove them. Essentially, we are splitting the paragraphs
+    # into word strings.
     _words = []
     for word in words:
-        while '\n\n' in word:
-            w, word = word.split('\n\n', 1)
+        for w in re.split(r'([^\s]+)\s+', word):
             if w != '':
                 _words.append(w)
-            _words.append('\n')
-        if word != '':
-            _words.append(word)
     words = _words
 
-    # Now split any remaining words that have '\n' in them into two
-    # separate words.
+    # Use regular expressions to split the list of words by any remaining
+    # whitespace characters. This will help to preserve any notion of
+    # indentations or other special formatting found in the orginal text
+    # (i.e. some whitespace will be treated as word strings).
     _words = []
     for word in words:
-        if '\n' in word and '\n' != word:
-            for w in word.split('\n'):
-                if w != '':
-                    _words.append(w)
-        else:
-            _words.append(word)
+        for w in re.split(r'(\s)', word):
+            if w != '':
+                _words.append(w)
     words = _words
 
-    # Now split each word to pull out any punctutation into its own word.
+    # Use regular expressions to split the list of words by anything that is not
+    # a letter, or number, or ', or - (i.e. we want to preserve hyphenated
+    # words or words using an apostrophe). Therefore, we are splitting by any
+    # form of punctuation.
     _words = []
     for word in words:
-        for w in re.split("([^\w\'\-])", word):
+        for w in re.split(r'([^\w\'\-])', word):
             if w != '':
                 _words.append(w)
     words = _words
@@ -202,7 +196,7 @@ if __name__ == "__main__":
     words = set(text_in_words)
     # remove ignored words from the word set, then sort the set
     words = sorted(set(words) - ignored_words)
-    
+
     word_indices = dict((c, i) for i, c in enumerate(words))
     indices_word = dict((i, c) for i, c in enumerate(words))
 
