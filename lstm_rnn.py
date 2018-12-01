@@ -15,9 +15,11 @@ https://medium.freecodecamp.org/applied-introduction-to-lstms-for-text-generatio
 
 import re
 import sys
-import time
+import datetime
 
 import numpy as np
+
+import matplotlib.pyplot as plt
 
 from keras.callbacks import EarlyStopping, LambdaCallback, ModelCheckpoint
 from keras.layers import Activation, Bidirectional, Dense, Dropout, Embedding, LSTM
@@ -138,7 +140,6 @@ def sample(preds, temperature=1.0):
     probas = np.random.multinomial(1, preds, 1)
     return np.argmax(probas)
 
-
 def on_epoch_end(epoch, logs):
     # Function invoked at end of each epoch. Prints generated text.
     examples_file.write('\n----- Generating text after Epoch: %d\n' % epoch)
@@ -169,6 +170,33 @@ def on_epoch_end(epoch, logs):
         examples_file.write('\n')
     examples_file.write('='*80 + '\n')
     examples_file.flush()
+
+def plot_history(history, filename):
+    # plot the accuracy of the model and save it to file
+    plt.plot(history.history['acc'])
+    plt.plot(history.history['val_acc'])
+    plt.title('model accuracy')
+    plt.ylabel('accuracy')
+    plt.xlabel('epoch')
+    plt.legend(['train', 'test'], loc='upper left')
+
+    path_acc = "plots/" + "acc_" + re.sub('\.txt$', '', filename) + "_" + datetime.datetime.now().strftime("%y-%m-%d-%H-%M")
+
+    plt.savefig(path_acc, bbox_inches='tight')
+
+    plt.clf()
+
+    # plot the loss of the model and save it to file
+    plt.plot(history.history['loss'])
+    plt.plot(history.history['val_loss'])
+    plt.title('model loss')
+    plt.ylabel('loss')
+    plt.xlabel('epoch')
+    plt.legend(['train', 'test'], loc='upper left')
+
+    path_loss = "plots/" + "loss_" + re.sub('\.txt$', '', filename) + "_" + datetime.datetime.now().strftime("%y-%m-%d-%H-%M")
+
+    plt.savefig(path_loss, bbox_inches='tight')
 
 
 if __name__ == "__main__":
@@ -233,11 +261,15 @@ if __name__ == "__main__":
 
     # SET THE TRAINING PARAMETERS, THEN FIT THE MODEL
     # TODO - EXPERIMENT: try training with different # of batch sizes and epochs
-    filename = "generated_text_" + str(time.time())
-    examples_file = open("./gentext/"+filename, "w")
-    model.fit_generator(generator(sentences, next_words, BATCH_SIZE),
-                        steps_per_epoch=int(len(sentences)/BATCH_SIZE) + 1,
-                        epochs=100,
-                        callbacks=callbacks_list,
-                        validation_data=generator(sentences_test, next_words_test, BATCH_SIZE),
-                        validation_steps=int(len(sentences_test)/BATCH_SIZE) + 1)
+    gen_filename = "gen_text_" + re.sub('\.txt$', '', filename) + "_" + datetime.datetime.now().strftime("%y-%m-%d-%H-%M")
+    examples_file = open("./gentext/"+gen_filename, "w")
+    history = model.fit_generator(generator(sentences, next_words, BATCH_SIZE),
+                            steps_per_epoch=int(len(sentences)/BATCH_SIZE) + 1,
+                            epochs=100,
+                            callbacks=callbacks_list,
+                            validation_data=generator(sentences_test, next_words_test, BATCH_SIZE),
+                            validation_steps=int(len(sentences_test)/BATCH_SIZE) + 1)
+
+    # visualization
+    plot_history(history, filename)
+
