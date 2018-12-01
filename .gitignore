@@ -1,4 +1,4 @@
 .DS_Store
 .virtualenv/
 __pycache__/
-
+checkpoints/
