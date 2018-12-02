@@ -39,7 +39,7 @@ GENTEXT_FOLDER = os.path.join(os.path.dirname(__file__), "gentext")
 PLOT_FOLDER = os.path.join(os.path.dirname(__file__), "plots")
 
 # Timestamp used for any generated files.
-TIMESTAMP = datetime.datetime.now().strftime("%y-%m-%d-%H-%M")
+TIMESTAMP = datetime.datetime.now().strftime("%Y-%m-%d-%H%M%S")
 
 
 def preprocess(text):
