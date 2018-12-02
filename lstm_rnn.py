@@ -256,18 +256,18 @@ if __name__ == "__main__":
     checkpoint_callback = ModelCheckpoint(checkpoint_filename, monitor='val_acc', save_best_only=True) # save the weights every epoch
     gentext_callback = LambdaCallback(on_epoch_end=gentext)
     early_stopping_callback = EarlyStopping(monitor='val_acc', patience=20) # halt the training if there no gain in the loss in 5 epochs
-    callbacks_list = [checkpoint_callback, gentext_callback, early_stopping_callback]
 
     # SET THE TRAINING PARAMETERS, THEN FIT THE MODEL
     # TODO - EXPERIMENT: try training with different # of batch sizes and epochs
     gentext_filename = os.path.join(GENTEXT_FOLDER, re.sub('\.txt$', '', input_filename) + "_" + TIMESTAMP)
     gentext_file = open(gentext_filename, "w")
-    results = model.fit_generator(generator(sequences_train, next_words_train, BATCH_SIZE),
-                            steps_per_epoch=int(len(sequences_train)/BATCH_SIZE) + 1,
-                            epochs=NUM_EPOCHS,
-                            callbacks=callbacks_list,
-                            validation_data=generator(sequences_test, next_words_test, BATCH_SIZE),
-                            validation_steps=int(len(sequences_test)/BATCH_SIZE) + 1)
+    results = model.fit_generator(
+        epochs=NUM_EPOCHS,
+        generator=generator(sequences_train, next_words_train, BATCH_SIZE),
+        steps_per_epoch=int(len(sequences_train)/BATCH_SIZE) + 1,
+        validation_data=generator(sequences_test, next_words_test, BATCH_SIZE),
+        validation_steps=int(len(sequences_test)/BATCH_SIZE) + 1,
+        callbacks=[checkpoint_callback, gentext_callback, early_stopping_callback])
     gentext_file.close()
 
     # visualization
