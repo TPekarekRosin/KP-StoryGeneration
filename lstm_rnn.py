@@ -29,10 +29,12 @@ from keras.utils import np_utils
 
 
 # SET CONSTANTS
+# All of these paramters are tunable for experimentation.
 SEQUENCE_LEN = 10 # number of words used in the seeded sequence
 STEP = 1 # increment by a number of words when sequencing the text
 PERCENTAGE_TO_TEST = 10 # percentage of the input to test the model on
-BATCH_SIZE = 32 #
+NUM_EPOCHS = 100 # number of epochs to run our model for
+BATCH_SIZE = 32 # batch size of the data to run our model over
 
 # Build path names to local folders for any generated files.
 CHECKPOINTS_FOLDER = os.path.join(os.path.dirname(__file__), "checkpoints")
@@ -262,7 +264,7 @@ if __name__ == "__main__":
     gentext_file = open(gentext_filename, "w")
     results = model.fit_generator(generator(sequences_train, next_words_train, BATCH_SIZE),
                             steps_per_epoch=int(len(sequences_train)/BATCH_SIZE) + 1,
-                            epochs=100,
+                            epochs=NUM_EPOCHS,
                             callbacks=callbacks_list,
                             validation_data=generator(sequences_test, next_words_test, BATCH_SIZE),
                             validation_steps=int(len(sequences_test)/BATCH_SIZE) + 1)
