@@ -31,6 +31,7 @@ from keras.utils import np_utils
 # SET CONSTANTS
 SEQUENCE_LEN = 10 # number of words used in the seeded sequence
 STEP = 1 # increment by a number of words when sequencing the text
+PERCENTAGE_TO_TEST = 10 # percentage of the input to test the model on
 BATCH_SIZE = 32 #
 
 # Build path names to local folders for any generated files.
@@ -97,14 +98,14 @@ def preprocess(text):
 
 
 # TODO - EXPERIMENT: try using different percentages of train and test data
-def shuffle_and_split_training_set(sequences, next_words, percentage_test=10):
+def shuffle_and_split_training_set(sequences, next_words):
     _sequences = []
     _next_words = []
     for i in np.random.permutation(len(sequences)):
         _sequences.append(sequences[i])
         _next_words.append(next_words[i])
 
-    cut_index = int(len(sequences) * (1.-(percentage_test/100.)))
+    cut_index = int(len(sequences) * (1.-(PERCENTAGE_TO_TEST/100.)))
     x_train, x_test = _sequences[:cut_index], _sequences[cut_index:]
     y_train, y_test = _next_words[:cut_index], _next_words[cut_index:]
 
