@@ -247,11 +247,11 @@ if __name__ == "__main__":
 
     # CREATE CALLBACKS FOR WHEN WE RUN THE MODEL
     # set the file path for storing the output from the model
-    file_path = os.path.join(CHECKPOINTS_FOLDER, "LSTM_Sherlock-epoch{epoch:03d}-words%d-sequence%d-loss{loss:.4f}-acc{acc:.4f}-val_loss{val_loss:.4f}-val_acc{val_acc:.4f}") % (
+    checkpoint_filename = os.path.join(CHECKPOINTS_FOLDER, "LSTM_Sherlock-epoch{epoch:03d}-words%d-sequence%d-loss{loss:.4f}-acc{acc:.4f}-val_loss{val_loss:.4f}-val_acc{val_acc:.4f}") % (
         len(words_in_text),
         SEQUENCE_LEN
     )
-    checkpoint = ModelCheckpoint(file_path, monitor='val_acc', save_best_only=True) # save the weights every epoch
+    checkpoint = ModelCheckpoint(checkpoint_filename, monitor='val_acc', save_best_only=True) # save the weights every epoch
     print_callback = LambdaCallback(on_epoch_end=on_epoch_end)
     early_stopping = EarlyStopping(monitor='val_acc', patience=20) # halt the training if there no gain in the loss in 5 epochs
     callbacks_list = [checkpoint, print_callback, early_stopping]
