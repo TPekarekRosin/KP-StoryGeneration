@@ -32,6 +32,9 @@ SEQUENCE_LEN = 10 # number of words used in the seeded sequence
 STEP = 1 # increment by a number of words when sequencing the text
 BATCH_SIZE = 32 #
 
+# Timestamp used for any generated files.
+TIMESTAMP = datetime.datetime.now().strftime("%y-%m-%d-%H-%M")
+
 
 def preprocess(text):
     # First, bring all words separated across lines back together.
@@ -181,7 +184,7 @@ def plot_history(history, filename):
     plt.xlabel('epoch')
     plt.legend(['train', 'test'], loc='upper left')
 
-    path_acc = "plots/" + "acc_" + re.sub('\.txt$', '', filename) + "_" + datetime.datetime.now().strftime("%y-%m-%d-%H-%M")
+    path_acc = "plots/" + "acc_" + re.sub('\.txt$', '', filename) + "_" + TIMESTAMP
 
     plt.savefig(path_acc, bbox_inches='tight')
 
@@ -195,7 +198,7 @@ def plot_history(history, filename):
     plt.xlabel('epoch')
     plt.legend(['train', 'test'], loc='upper left')
 
-    path_loss = "plots/" + "loss_" + re.sub('\.txt$', '', filename) + "_" + datetime.datetime.now().strftime("%y-%m-%d-%H-%M")
+    path_loss = "plots/" + "loss_" + re.sub('\.txt$', '', filename) + "_" + TIMESTAMP
 
     plt.savefig(path_loss, bbox_inches='tight')
 
@@ -239,7 +242,7 @@ if __name__ == "__main__":
 
     # SET THE TRAINING PARAMETERS, THEN FIT THE MODEL
     # TODO - EXPERIMENT: try training with different # of batch sizes and epochs
-    gen_filename = "gen_text_" + re.sub('\.txt$', '', filename) + "_" + datetime.datetime.now().strftime("%y-%m-%d-%H-%M")
+    gen_filename = "gen_text_" + re.sub('\.txt$', '', filename) + "_" + TIMESTAMP
     examples_file = open("./gentext/"+gen_filename, "w")
     history = model.fit_generator(generator(sequences, next_words, BATCH_SIZE),
                             steps_per_epoch=int(len(sequences)/BATCH_SIZE) + 1,
