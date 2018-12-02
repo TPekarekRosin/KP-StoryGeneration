@@ -181,7 +181,7 @@ def on_epoch_end(epoch, logs):
     examples_file.flush()
 
 
-def plot_history(results, filename):
+def plot_history(results, input_filename):
     # plot the accuracy of the model and save it to file
     plt.plot(results.history['acc'])
     plt.plot(results.history['val_acc'])
@@ -190,7 +190,7 @@ def plot_history(results, filename):
     plt.xlabel('epoch')
     plt.legend(['train', 'test'], loc='upper left')
 
-    path_acc = os.path.join(PLOT_FOLDER, "acc_" + re.sub('\.txt$', '', filename) + "_" + TIMESTAMP)
+    path_acc = os.path.join(PLOT_FOLDER, "acc_" + re.sub('\.txt$', '', input_filename) + "_" + TIMESTAMP)
 
     plt.savefig(path_acc, bbox_inches='tight')
 
@@ -204,7 +204,7 @@ def plot_history(results, filename):
     plt.xlabel('epoch')
     plt.legend(['train', 'test'], loc='upper left')
 
-    path_loss = os.path.join(PLOT_FOLDER, "loss_" + re.sub('\.txt$', '', filename) + "_" + TIMESTAMP)
+    path_loss = os.path.join(PLOT_FOLDER, "loss_" + re.sub('\.txt$', '', input_filename) + "_" + TIMESTAMP)
 
     plt.savefig(path_loss, bbox_inches='tight')
 
@@ -218,8 +218,8 @@ if __name__ == "__main__":
     # PREPROCESS THE DATA
     # pass in the text file name as the first argument
     # e.g. `$ python lstm_rnn.py sample1.txt`
-    filename = sys.argv[1]
-    with open(filename) as file:
+    input_filename = sys.argv[1]
+    with open(input_filename) as file:
         words_in_text = preprocess(file.read())
 
     words_in_text = set(words_in_text)
@@ -253,7 +253,7 @@ if __name__ == "__main__":
 
     # SET THE TRAINING PARAMETERS, THEN FIT THE MODEL
     # TODO - EXPERIMENT: try training with different # of batch sizes and epochs
-    gen_filename = os.path.join(GENTEXT_FOLDER, "gen_text_" + re.sub('\.txt$', '', filename) + "_" + TIMESTAMP)
+    gen_filename = os.path.join(GENTEXT_FOLDER, "gen_text_" + re.sub('\.txt$', '', input_filename) + "_" + TIMESTAMP)
     examples_file = open(gen_filename, "w")
     results = model.fit_generator(generator(sequences, next_words, BATCH_SIZE),
                             steps_per_epoch=int(len(sequences)/BATCH_SIZE) + 1,
@@ -263,4 +263,4 @@ if __name__ == "__main__":
                             validation_steps=int(len(sequences_test)/BATCH_SIZE) + 1)
 
     # visualization
-    plot_history(results, filename)
+    plot_history(results, input_filename)
