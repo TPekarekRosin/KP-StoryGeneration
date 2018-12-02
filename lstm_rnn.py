@@ -13,6 +13,7 @@ Inspiration for next steps:
 https://medium.freecodecamp.org/applied-introduction-to-lstms-for-text-generation-380158b29fb3
 """
 
+import os
 import re
 import sys
 import datetime
@@ -31,6 +32,11 @@ from keras.utils import np_utils
 SEQUENCE_LEN = 10 # number of words used in the seeded sequence
 STEP = 1 # increment by a number of words when sequencing the text
 BATCH_SIZE = 32 #
+
+# Build path names to local folders for any generated files.
+CHECKPOINTS_FOLDER = os.path.join(os.path.dirname(__file__), "checkpoints")
+GENTEXT_FOLDER = os.path.join(os.path.dirname(__file__), "gentext")
+PLOT_FOLDER = os.path.join(os.path.dirname(__file__), "plots")
 
 # Timestamp used for any generated files.
 TIMESTAMP = datetime.datetime.now().strftime("%y-%m-%d-%H-%M")
@@ -184,7 +190,7 @@ def plot_history(history, filename):
     plt.xlabel('epoch')
     plt.legend(['train', 'test'], loc='upper left')
 
-    path_acc = "plots/" + "acc_" + re.sub('\.txt$', '', filename) + "_" + TIMESTAMP
+    path_acc = os.path.join(PLOT_FOLDER, "acc_" + re.sub('\.txt$', '', filename) + "_" + TIMESTAMP)
 
     plt.savefig(path_acc, bbox_inches='tight')
 
@@ -198,12 +204,17 @@ def plot_history(history, filename):
     plt.xlabel('epoch')
     plt.legend(['train', 'test'], loc='upper left')
 
-    path_loss = "plots/" + "loss_" + re.sub('\.txt$', '', filename) + "_" + TIMESTAMP
+    path_loss = os.path.join(PLOT_FOLDER, "loss_" + re.sub('\.txt$', '', filename) + "_" + TIMESTAMP)
 
     plt.savefig(path_loss, bbox_inches='tight')
 
 
 if __name__ == "__main__":
+    # Create folders for any generated files.
+    os.makedirs(CHECKPOINTS_FOLDER, exist_ok=True)
+    os.makedirs(GENTEXT_FOLDER, exist_ok=True)
+    os.makedirs(PLOT_FOLDER, exist_ok=True)
+
     # PREPROCESS THE DATA
     # pass in the text file name as the first argument
     # e.g. `$ python lstm_rnn.py sample1.txt`
@@ -231,7 +242,7 @@ if __name__ == "__main__":
 
     # CREATE CALLBACKS FOR WHEN WE RUN THE MODEL
     # set the file path for storing the output from the model
-    file_path = "./checkpoints/LSTM_Sherlock-epoch{epoch:03d}-words%d-sequence%d-loss{loss:.4f}-acc{acc:.4f}-val_loss{val_loss:.4f}-val_acc{val_acc:.4f}" % (
+    file_path = os.path.join(CHECKPOINTS_FOLDER, "LSTM_Sherlock-epoch{epoch:03d}-words%d-sequence%d-loss{loss:.4f}-acc{acc:.4f}-val_loss{val_loss:.4f}-val_acc{val_acc:.4f}") % (
         len(words_in_text),
         SEQUENCE_LEN
     )
@@ -242,8 +253,8 @@ if __name__ == "__main__":
 
     # SET THE TRAINING PARAMETERS, THEN FIT THE MODEL
     # TODO - EXPERIMENT: try training with different # of batch sizes and epochs
-    gen_filename = "gen_text_" + re.sub('\.txt$', '', filename) + "_" + TIMESTAMP
-    examples_file = open("./gentext/"+gen_filename, "w")
+    gen_filename = os.path.join(GENTEXT_FOLDER, "gen_text_" + re.sub('\.txt$', '', filename) + "_" + TIMESTAMP)
+    examples_file = open(gen_filename, "w")
     history = model.fit_generator(generator(sequences, next_words, BATCH_SIZE),
                             steps_per_epoch=int(len(sequences)/BATCH_SIZE) + 1,
                             epochs=100,
