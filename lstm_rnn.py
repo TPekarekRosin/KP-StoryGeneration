@@ -150,7 +150,7 @@ def sample(preds, temperature=1.0):
     return np.argmax(probas)
 
 
-def on_epoch_end(epoch, logs):
+def gentext(epoch, logs):
     # Function invoked at end of each epoch. Prints generated text.
     examples_file.write('\n----- Generating text after Epoch: %d\n' % epoch)
 
@@ -251,10 +251,10 @@ if __name__ == "__main__":
         len(words_in_text),
         SEQUENCE_LEN
     )
-    checkpoint = ModelCheckpoint(checkpoint_filename, monitor='val_acc', save_best_only=True) # save the weights every epoch
-    print_callback = LambdaCallback(on_epoch_end=on_epoch_end)
-    early_stopping = EarlyStopping(monitor='val_acc', patience=20) # halt the training if there no gain in the loss in 5 epochs
-    callbacks_list = [checkpoint, print_callback, early_stopping]
+    checkpoint_callback = ModelCheckpoint(checkpoint_filename, monitor='val_acc', save_best_only=True) # save the weights every epoch
+    gentext_callback = LambdaCallback(on_epoch_end=gentext)
+    early_stopping_callback = EarlyStopping(monitor='val_acc', patience=20) # halt the training if there no gain in the loss in 5 epochs
+    callbacks_list = [checkpoint_callback, gentext_callback, early_stopping_callback]
 
     # SET THE TRAINING PARAMETERS, THEN FIT THE MODEL
     # TODO - EXPERIMENT: try training with different # of batch sizes and epochs
