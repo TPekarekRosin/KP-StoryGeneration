@@ -155,8 +155,8 @@ def on_epoch_end(epoch, logs):
     examples_file.write('\n----- Generating text after Epoch: %d\n' % epoch)
 
     # Randomly pick a seed sequence
-    seed_index = np.random.randint(len(sequences+sequences_test))
-    seed = (sequences+sequences_test)[seed_index]
+    seed_index = np.random.randint(len(sequences))
+    seed = sequences[seed_index]
 
     for diversity in [0.3, 0.4, 0.5, 0.6, 0.7]:
         sequence = seed
@@ -239,7 +239,7 @@ if __name__ == "__main__":
         next_words.append(words_in_text[i+SEQUENCE_LEN])
 
     # SPLIT DATA INTO TRAIN AND TEST DATA
-    (sequences, next_words), (sequences_test, next_words_test) = shuffle_and_split_training_set(sequences, next_words)
+    (sequences_train, next_words_train), (sequences_test, next_words_test) = shuffle_and_split_training_set(sequences, next_words)
 
     # BUILD AND COMPILE THE MODEL
     model = get_model()
@@ -260,8 +260,8 @@ if __name__ == "__main__":
     # TODO - EXPERIMENT: try training with different # of batch sizes and epochs
     gen_filename = os.path.join(GENTEXT_FOLDER, "gen_text_" + re.sub('\.txt$', '', input_filename) + "_" + TIMESTAMP)
     examples_file = open(gen_filename, "w")
-    results = model.fit_generator(generator(sequences, next_words, BATCH_SIZE),
-                            steps_per_epoch=int(len(sequences)/BATCH_SIZE) + 1,
+    results = model.fit_generator(generator(sequences_train, next_words_train, BATCH_SIZE),
+                            steps_per_epoch=int(len(sequences_train)/BATCH_SIZE) + 1,
                             epochs=100,
                             callbacks=callbacks_list,
                             validation_data=generator(sequences_test, next_words_test, BATCH_SIZE),
