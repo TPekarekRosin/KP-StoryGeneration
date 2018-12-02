@@ -97,16 +97,16 @@ def preprocess(text):
 
 
 # TODO - EXPERIMENT: try using different percentages of train and test data
-def shuffle_and_split_training_set(sequences_original, next_words_original, percentage_test=10):
-    tmp_sequences = []
-    tmp_next_word = []
-    for i in np.random.permutation(len(sequences_original)):
-        tmp_sequences.append(sequences_original[i])
-        tmp_next_word.append(next_words_original[i])
+def shuffle_and_split_training_set(sequences, next_words, percentage_test=10):
+    _sequences = []
+    _next_words = []
+    for i in np.random.permutation(len(sequences)):
+        _sequences.append(sequences[i])
+        _next_words.append(next_words[i])
 
-    cut_index = int(len(sequences_original) * (1.-(percentage_test/100.)))
-    x_train, x_test = tmp_sequences[:cut_index], tmp_sequences[cut_index:]
-    y_train, y_test = tmp_next_word[:cut_index], tmp_next_word[cut_index:]
+    cut_index = int(len(sequences) * (1.-(percentage_test/100.)))
+    x_train, x_test = _sequences[:cut_index], _sequences[cut_index:]
+    y_train, y_test = _next_words[:cut_index], _next_words[cut_index:]
 
     return (x_train, y_train), (x_test, y_test)
 
