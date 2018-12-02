@@ -265,6 +265,7 @@ if __name__ == "__main__":
                             callbacks=callbacks_list,
                             validation_data=generator(sequences_test, next_words_test, BATCH_SIZE),
                             validation_steps=int(len(sequences_test)/BATCH_SIZE) + 1)
+    examples_file.close()
 
     # visualization
     plot_accuracy(results, input_filename)
