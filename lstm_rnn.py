@@ -28,7 +28,7 @@ from keras.utils import np_utils
 
 
 # SET CONSTANTS
-SEQUENCE_LEN = 10 # number of words used in the seeded sentence
+SEQUENCE_LEN = 10 # number of words used in the seeded sequence
 STEP = 1 # increment by a number of words when sequencing the text
 BATCH_SIZE = 32 #
 
@@ -88,15 +88,15 @@ def preprocess(text):
 
 
 # TODO - EXPERIMENT: try using different percentages of train and test data
-def shuffle_and_split_training_set(sentences_original, next_original, percentage_test=10):
-    tmp_sentences = []
+def shuffle_and_split_training_set(sequences_original, next_original, percentage_test=10):
+    tmp_sequences = []
     tmp_next_word = []
-    for i in np.random.permutation(len(sentences_original)):
-        tmp_sentences.append(sentences_original[i])
+    for i in np.random.permutation(len(sequences_original)):
+        tmp_sequences.append(sequences_original[i])
         tmp_next_word.append(next_original[i])
 
-    cut_index = int(len(sentences_original) * (1.-(percentage_test/100.)))
-    x_train, x_test = tmp_sentences[:cut_index], tmp_sentences[cut_index:]
+    cut_index = int(len(sequences_original) * (1.-(percentage_test/100.)))
+    x_train, x_test = tmp_sequences[:cut_index], tmp_sequences[cut_index:]
     y_train, y_test = tmp_next_word[:cut_index], tmp_next_word[cut_index:]
 
     return (x_train, y_train), (x_test, y_test)
@@ -104,15 +104,15 @@ def shuffle_and_split_training_set(sentences_original, next_original, percentage
 
 # Use a data generator to feed the model with chunks of the training set,
 # one for each batch, instead of feeding everything at once.
-def generator(sentence_list, next_word_list, batch_size):
+def generator(sequences, next_word_list, batch_size):
     index = 0
     while True:
         x = np.zeros((batch_size, SEQUENCE_LEN), dtype=np.int32)
         y = np.zeros((batch_size), dtype=np.int32)
         for i in range(batch_size):
-            for t, w in enumerate(sentence_list[index % len(sentence_list)]):
+            for t, w in enumerate(sequences[index % len(sequences)]):
                 x[i, t] = word_indices[w]
-            y[i] = word_indices[next_word_list[index % len(sentence_list)]]
+            y[i] = word_indices[next_word_list[index % len(sequences)]]
             index = index + 1
         yield x, y
 
@@ -139,36 +139,38 @@ def sample(preds, temperature=1.0):
     probas = np.random.multinomial(1, preds, 1)
     return np.argmax(probas)
 
+
 def on_epoch_end(epoch, logs):
     # Function invoked at end of each epoch. Prints generated text.
     examples_file.write('\n----- Generating text after Epoch: %d\n' % epoch)
 
     # Randomly pick a seed sequence
-    seed_index = np.random.randint(len(sentences+sentences_test))
-    seed = (sentences+sentences_test)[seed_index]
+    seed_index = np.random.randint(len(sequences+sequences_test))
+    seed = (sequences+sequences_test)[seed_index]
 
     for diversity in [0.3, 0.4, 0.5, 0.6, 0.7]:
-        sentence = seed
+        sequence = seed
         examples_file.write('----- Diversity:' + str(diversity) + '\n')
-        examples_file.write('----- Generating with seed:\n"' + ' '.join(sentence) + '"\n')
-        examples_file.write(' '.join(sentence))
+        examples_file.write('----- Generating with seed:\n"' + ' '.join(sequence) + '"\n')
+        examples_file.write(' '.join(sequence))
 
         for i in range(50):
             x_pred = np.zeros((1, SEQUENCE_LEN))
-            for t, word in enumerate(sentence):
+            for t, word in enumerate(sequence):
                 x_pred[0, t] = word_indices[word]
 
             preds = model.predict(x_pred, verbose=0)[0]
             next_index = sample(preds, diversity)
             next_word = indices_word[next_index]
 
-            sentence = sentence[1:]
-            sentence.append(next_word)
+            sequence = sequence[1:]
+            sequence.append(next_word)
 
             examples_file.write(" "+next_word)
         examples_file.write('\n')
     examples_file.write('='*80 + '\n')
     examples_file.flush()
+
 
 def plot_history(history, filename):
     # plot the accuracy of the model and save it to file
@@ -211,14 +213,14 @@ if __name__ == "__main__":
     indices_word = dict((i, c) for i, c in enumerate(words))
 
     # SEQUENCE THE TEXT
-    sentences = []
+    sequences = []
     next_words = []
-    for i in range(0, len(words_in_text) - SEQUENCE_LEN, STEP): # TODO: STEP could be hard-coded to = 1
-        sentences.append(words_in_text[i: i + SEQUENCE_LEN])
-        next_words.append(words_in_text[i + SEQUENCE_LEN])
+    for i in range(0, len(words_in_text) - SEQUENCE_LEN, STEP):
+        sequences.append(words_in_text[i:i+SEQUENCE_LEN])
+        next_words.append(words_in_text[i+SEQUENCE_LEN])
 
     # SPLIT DATA INTO TRAIN AND TEST DATA
-    (sentences, next_words), (sentences_test, next_words_test) = shuffle_and_split_training_set(sentences, next_words)
+    (sequences, next_words), (sequences_test, next_words_test) = shuffle_and_split_training_set(sequences, next_words)
 
     # BUILD AND COMPILE THE MODEL
     model = get_model()
@@ -239,13 +241,12 @@ if __name__ == "__main__":
     # TODO - EXPERIMENT: try training with different # of batch sizes and epochs
     gen_filename = "gen_text_" + re.sub('\.txt$', '', filename) + "_" + datetime.datetime.now().strftime("%y-%m-%d-%H-%M")
     examples_file = open("./gentext/"+gen_filename, "w")
-    history = model.fit_generator(generator(sentences, next_words, BATCH_SIZE),
-                            steps_per_epoch=int(len(sentences)/BATCH_SIZE) + 1,
+    history = model.fit_generator(generator(sequences, next_words, BATCH_SIZE),
+                            steps_per_epoch=int(len(sequences)/BATCH_SIZE) + 1,
                             epochs=100,
                             callbacks=callbacks_list,
-                            validation_data=generator(sentences_test, next_words_test, BATCH_SIZE),
-                            validation_steps=int(len(sentences_test)/BATCH_SIZE) + 1)
+                            validation_data=generator(sequences_test, next_words_test, BATCH_SIZE),
+                            validation_steps=int(len(sequences_test)/BATCH_SIZE) + 1)
 
     # visualization
     plot_history(history, filename)
-
