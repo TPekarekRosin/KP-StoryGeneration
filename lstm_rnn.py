@@ -205,11 +205,11 @@ if __name__ == "__main__":
     # e.g. `$ python lstm_rnn.py sample1.txt`
     filename = sys.argv[1]
     with open(filename) as file:
-        text_in_words = preprocess(file.read())
+        words_in_text = preprocess(file.read())
 
     # calculate the word frequency
     word_freq = {}
-    for word in text_in_words:
+    for word in words_in_text:
         word_freq[word] = word_freq.get(word, 0) + 1
 
     # set the minimum word frequency
@@ -221,7 +221,7 @@ if __name__ == "__main__":
             ignored_words.add(k)
 
     # create a set of words parsed from the text
-    words = set(text_in_words)
+    words = set(words_in_text)
     # remove ignored words from the word set, then sort the set
     words = sorted(set(words) - ignored_words)
 
@@ -232,11 +232,11 @@ if __name__ == "__main__":
     sentences = []
     next_words = []
     ignored = 0
-    for i in range(0, len(text_in_words) - SEQUENCE_LEN, STEP): # TODO: STEP could be hard-coded to = 1
+    for i in range(0, len(words_in_text) - SEQUENCE_LEN, STEP): # TODO: STEP could be hard-coded to = 1
         # Only add sequences to the sentences list where no word is in ignored_words
-        if len(set(text_in_words[i: i+SEQUENCE_LEN+1]).intersection(ignored_words)) == 0:
-            sentences.append(text_in_words[i: i + SEQUENCE_LEN])
-            next_words.append(text_in_words[i + SEQUENCE_LEN])
+        if len(set(words_in_text[i: i+SEQUENCE_LEN+1]).intersection(ignored_words)) == 0:
+            sentences.append(words_in_text[i: i + SEQUENCE_LEN])
+            next_words.append(words_in_text[i + SEQUENCE_LEN])
         else:
             ignored = ignored + 1
 
