@@ -152,7 +152,7 @@ def sample(preds, temperature=1.0):
 
 def gentext(epoch, logs):
     # Function invoked at end of each epoch. Prints generated text.
-    examples_file.write('\n----- Generating text after Epoch: %d\n' % epoch)
+    gentext_file.write('\n----- Generating text after Epoch: %d\n' % epoch)
 
     # Randomly pick a seed sequence
     seed_index = np.random.randint(len(sequences))
@@ -160,9 +160,9 @@ def gentext(epoch, logs):
 
     for diversity in [0.3, 0.4, 0.5, 0.6, 0.7]:
         sequence = seed
-        examples_file.write('----- Diversity:' + str(diversity) + '\n')
-        examples_file.write('----- Generating with seed:\n"' + ' '.join(sequence) + '"\n')
-        examples_file.write(' '.join(sequence))
+        gentext_file.write('----- Diversity:' + str(diversity) + '\n')
+        gentext_file.write('----- Generating with seed:\n"' + ' '.join(sequence) + '"\n')
+        gentext_file.write(' '.join(sequence))
 
         for i in range(50):
             x_pred = np.zeros((1, SEQUENCE_LEN))
@@ -176,10 +176,10 @@ def gentext(epoch, logs):
             sequence = sequence[1:]
             sequence.append(next_word)
 
-            examples_file.write(" "+next_word)
-        examples_file.write('\n')
-    examples_file.write('='*80 + '\n')
-    examples_file.flush()
+            gentext_file.write(" "+next_word)
+        gentext_file.write('\n')
+    gentext_file.write('='*80 + '\n')
+    gentext_file.flush()
 
 
 def plot_accuracy(results, input_filename):
@@ -258,15 +258,15 @@ if __name__ == "__main__":
 
     # SET THE TRAINING PARAMETERS, THEN FIT THE MODEL
     # TODO - EXPERIMENT: try training with different # of batch sizes and epochs
-    gen_filename = os.path.join(GENTEXT_FOLDER, "gen_text_" + re.sub('\.txt$', '', input_filename) + "_" + TIMESTAMP)
-    examples_file = open(gen_filename, "w")
+    gentext_filename = os.path.join(GENTEXT_FOLDER, re.sub('\.txt$', '', input_filename) + "_" + TIMESTAMP)
+    gentext_file = open(gentext_filename, "w")
     results = model.fit_generator(generator(sequences_train, next_words_train, BATCH_SIZE),
                             steps_per_epoch=int(len(sequences_train)/BATCH_SIZE) + 1,
                             epochs=100,
                             callbacks=callbacks_list,
                             validation_data=generator(sequences_test, next_words_test, BATCH_SIZE),
                             validation_steps=int(len(sequences_test)/BATCH_SIZE) + 1)
-    examples_file.close()
+    gentext_file.close()
 
     # visualization
     plot_accuracy(results, input_filename)
