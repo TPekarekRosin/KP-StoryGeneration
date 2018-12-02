@@ -39,7 +39,7 @@ BATCH_SIZE = 32 # batch size of the data to run our model over
 # Build path names to local folders for any generated files.
 CHECKPOINTS_FOLDER = os.path.join(os.path.dirname(__file__), "checkpoints")
 GENTEXT_FOLDER = os.path.join(os.path.dirname(__file__), "gentext")
-PLOT_FOLDER = os.path.join(os.path.dirname(__file__), "plots")
+PLOTS_FOLDER = os.path.join(os.path.dirname(__file__), "plots")
 
 # Timestamp used for any generated files.
 TIMESTAMP = datetime.datetime.now().strftime("%Y-%m-%d-%H%M%S")
@@ -194,7 +194,7 @@ def plot_accuracy(results, input_filename):
     plt.xlabel('epoch')
     plt.legend(['train', 'test'], loc='upper left')
 
-    path_acc = os.path.join(PLOT_FOLDER, "acc_" + re.sub('\.txt$', '', input_filename) + "_" + TIMESTAMP)
+    path_acc = os.path.join(PLOTS_FOLDER, "acc_" + re.sub('\.txt$', '', input_filename) + "_" + TIMESTAMP)
 
     plt.savefig(path_acc, bbox_inches='tight')
 
@@ -210,7 +210,7 @@ def plot_loss(results, input_filename):
     plt.xlabel('epoch')
     plt.legend(['train', 'test'], loc='upper left')
 
-    path_loss = os.path.join(PLOT_FOLDER, "loss_" + re.sub('\.txt$', '', input_filename) + "_" + TIMESTAMP)
+    path_loss = os.path.join(PLOTS_FOLDER, "loss_" + re.sub('\.txt$', '', input_filename) + "_" + TIMESTAMP)
 
     plt.savefig(path_loss, bbox_inches='tight')
 
@@ -219,7 +219,7 @@ if __name__ == "__main__":
     # Create folders for any generated files.
     os.makedirs(CHECKPOINTS_FOLDER, exist_ok=True)
     os.makedirs(GENTEXT_FOLDER, exist_ok=True)
-    os.makedirs(PLOT_FOLDER, exist_ok=True)
+    os.makedirs(PLOTS_FOLDER, exist_ok=True)
 
     # PREPROCESS THE DATA
     # pass in the text file name as the first argument
