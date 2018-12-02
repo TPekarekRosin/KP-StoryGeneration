@@ -28,7 +28,6 @@ from keras.utils import np_utils
 
 
 # SET CONSTANTS
-MIN_WORD_FREQUENCY = 1 # how often a word appears in the original text
 SEQUENCE_LEN = 10 # number of words used in the seeded sentence
 STEP = 1 # increment by a number of words when sequencing the text
 BATCH_SIZE = 32 #
@@ -122,11 +121,11 @@ def generator(sentence_list, next_word_list, batch_size):
 def get_model(dropout=0.2):
     print('Build model...')
     model = Sequential()
-    model.add(Embedding(input_dim=len(words), output_dim=1024)) #turns indexes into dense vectors of fixed size
+    model.add(Embedding(input_dim=len(words_in_text), output_dim=1024)) #turns indexes into dense vectors of fixed size
     model.add(Bidirectional(LSTM(128)))
     if dropout > 0:
         model.add(Dropout(dropout))
-    model.add(Dense(len(words)))
+    model.add(Dense(len(words_in_text)))
     model.add(Activation('softmax'))
     return model
 
@@ -207,38 +206,16 @@ if __name__ == "__main__":
     with open(filename) as file:
         words_in_text = preprocess(file.read())
 
-    # calculate the word frequency
-    word_freq = {}
-    for word in words_in_text:
-        word_freq[word] = word_freq.get(word, 0) + 1
-
-    # set the minimum word frequency
-    # TODO - EXPERIMENT: try using different frequencies
-    # create a set of ignored words that don't meet the minimum word frequency
-    ignored_words = set() # set(): an unordered list of unique elements
-    for k, v in word_freq.items():
-        if word_freq[k] < MIN_WORD_FREQUENCY:
-            ignored_words.add(k)
-
-    # create a set of words parsed from the text
     words = set(words_in_text)
-    # remove ignored words from the word set, then sort the set
-    words = sorted(set(words) - ignored_words)
-
     word_indices = dict((c, i) for i, c in enumerate(words))
     indices_word = dict((i, c) for i, c in enumerate(words))
 
     # SEQUENCE THE TEXT
     sentences = []
     next_words = []
-    ignored = 0
     for i in range(0, len(words_in_text) - SEQUENCE_LEN, STEP): # TODO: STEP could be hard-coded to = 1
-        # Only add sequences to the sentences list where no word is in ignored_words
-        if len(set(words_in_text[i: i+SEQUENCE_LEN+1]).intersection(ignored_words)) == 0:
-            sentences.append(words_in_text[i: i + SEQUENCE_LEN])
-            next_words.append(words_in_text[i + SEQUENCE_LEN])
-        else:
-            ignored = ignored + 1
+        sentences.append(words_in_text[i: i + SEQUENCE_LEN])
+        next_words.append(words_in_text[i + SEQUENCE_LEN])
 
     # SPLIT DATA INTO TRAIN AND TEST DATA
     (sentences, next_words), (sentences_test, next_words_test) = shuffle_and_split_training_set(sentences, next_words)
@@ -249,10 +226,9 @@ if __name__ == "__main__":
 
     # CREATE CALLBACKS FOR WHEN WE RUN THE MODEL
     # set the file path for storing the output from the model
-    file_path = "./checkpoints/LSTM_Sherlock-epoch{epoch:03d}-words%d-sequence%d-minfreq%d-loss{loss:.4f}-acc{acc:.4f}-val_loss{val_loss:.4f}-val_acc{val_acc:.4f}" % (
-        len(words),
-        SEQUENCE_LEN,
-        MIN_WORD_FREQUENCY
+    file_path = "./checkpoints/LSTM_Sherlock-epoch{epoch:03d}-words%d-sequence%d-loss{loss:.4f}-acc{acc:.4f}-val_loss{val_loss:.4f}-val_acc{val_acc:.4f}" % (
+        len(words_in_text),
+        SEQUENCE_LEN
     )
     checkpoint = ModelCheckpoint(file_path, monitor='val_acc', save_best_only=True) # save the weights every epoch
     print_callback = LambdaCallback(on_epoch_end=on_epoch_end)
