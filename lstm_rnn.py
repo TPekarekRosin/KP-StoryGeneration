@@ -114,16 +114,16 @@ def shuffle_and_split_training_set(sequences, next_words):
     return (x_train, y_train), (x_test, y_test)
 
 
-# Use a data generator to feed the model with chunks of the training set,
-# one for each batch, instead of feeding everything at once.
-def generator(sequences, next_words, batch_size):
+# Use a data generator to feed the model with chunks of the training and test
+# sets, one for each batch, instead of feeding everything at once.
+def generator(sequences, next_words):
     index = 0
     while True:
-        x = np.zeros((batch_size, SEQUENCE_LEN), dtype=np.int32)
-        y = np.zeros((batch_size), dtype=np.int32)
-        for i in range(batch_size):
-            for t, w in enumerate(sequences[index % len(sequences)]):
-                x[i, t] = word_indices[w]
+        x = np.zeros((BATCH_SIZE, SEQUENCE_LEN), dtype=np.int32)
+        y = np.zeros((BATCH_SIZE), dtype=np.int32)
+        for i in range(BATCH_SIZE):
+            for j, w in enumerate(sequences[index % len(sequences)]):
+                x[i, j] = word_indices[w]
             y[i] = word_indices[next_words[index % len(sequences)]]
             index = index + 1
         yield x, y
@@ -264,9 +264,9 @@ if __name__ == "__main__":
     gentext_file = open(gentext_filename, "w")
     results = model.fit_generator(
         epochs=NUM_EPOCHS,
-        generator=generator(sequences_train, next_words_train, BATCH_SIZE),
+        generator=generator(sequences_train, next_words_train),
         steps_per_epoch=int(len(sequences_train)/BATCH_SIZE) + 1,
-        validation_data=generator(sequences_test, next_words_test, BATCH_SIZE),
+        validation_data=generator(sequences_test, next_words_test),
         validation_steps=int(len(sequences_test)/BATCH_SIZE) + 1,
         callbacks=[checkpoint_callback, gentext_callback, early_stopping_callback])
     gentext_file.close()
