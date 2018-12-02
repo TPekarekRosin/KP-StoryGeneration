@@ -142,17 +142,16 @@ def get_model(dropout=0.2):
     return model
 
 
-def sample(preds, temperature=1.0):
-    # helper function to sample an index from a probability array
-    preds = np.asarray(preds).astype('float64')
-    preds = np.log(preds) / temperature
-    exp_preds = np.exp(preds)
-    preds = exp_preds / np.sum(exp_preds)
-    probas = np.random.multinomial(1, preds, 1)
-    return np.argmax(probas)
-
-
 def gentext(epoch, logs):
+    def get_next_index(preds, temperature=1.0):
+        # helper function to sample a random index from a probability array
+        preds = np.asarray(preds).astype('float64')
+        preds = np.log(preds) / temperature
+        exp_preds = np.exp(preds)
+        preds = exp_preds / np.sum(exp_preds)
+        probas = np.random.multinomial(1, preds, 1)
+        return np.argmax(probas)
+
     # Function invoked at end of each epoch. Prints generated text.
     gentext_file.write('\n----- Generating text after Epoch: %d\n' % epoch)
 
@@ -172,7 +171,7 @@ def gentext(epoch, logs):
                 x_pred[0, t] = word_indices[word]
 
             preds = model.predict(x_pred, verbose=0)[0]
-            next_index = sample(preds, diversity)
+            next_index = get_next_index(preds, diversity)
             next_word = indices_word[next_index]
 
             sequence = sequence[1:]
