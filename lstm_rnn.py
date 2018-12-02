@@ -228,6 +228,8 @@ if __name__ == "__main__":
     with open(input_filename) as file:
         words_in_text = preprocess(file.read())
 
+    # Condense the fully tokenized text into a 'set' of unique words
+    # and build a set of indices into it using a dictionary.
     words_in_text = set(words_in_text)
     word_indices = dict((w, i) for i, w in enumerate(words_in_text))
     indices_word = dict((i, w) for i, w in enumerate(words_in_text))
