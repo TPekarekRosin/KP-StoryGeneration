@@ -88,12 +88,12 @@ def preprocess(text):
 
 
 # TODO - EXPERIMENT: try using different percentages of train and test data
-def shuffle_and_split_training_set(sequences_original, next_original, percentage_test=10):
+def shuffle_and_split_training_set(sequences_original, next_words_original, percentage_test=10):
     tmp_sequences = []
     tmp_next_word = []
     for i in np.random.permutation(len(sequences_original)):
         tmp_sequences.append(sequences_original[i])
-        tmp_next_word.append(next_original[i])
+        tmp_next_word.append(next_words_original[i])
 
     cut_index = int(len(sequences_original) * (1.-(percentage_test/100.)))
     x_train, x_test = tmp_sequences[:cut_index], tmp_sequences[cut_index:]
@@ -104,7 +104,7 @@ def shuffle_and_split_training_set(sequences_original, next_original, percentage
 
 # Use a data generator to feed the model with chunks of the training set,
 # one for each batch, instead of feeding everything at once.
-def generator(sequences, next_word_list, batch_size):
+def generator(sequences, next_words, batch_size):
     index = 0
     while True:
         x = np.zeros((batch_size, SEQUENCE_LEN), dtype=np.int32)
@@ -112,7 +112,7 @@ def generator(sequences, next_word_list, batch_size):
         for i in range(batch_size):
             for t, w in enumerate(sequences[index % len(sequences)]):
                 x[i, t] = word_indices[w]
-            y[i] = word_indices[next_word_list[index % len(sequences)]]
+            y[i] = word_indices[next_words[index % len(sequences)]]
             index = index + 1
         yield x, y
 
