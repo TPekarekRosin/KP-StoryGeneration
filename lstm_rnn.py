@@ -181,10 +181,10 @@ def on_epoch_end(epoch, logs):
     examples_file.flush()
 
 
-def plot_history(history, filename):
+def plot_history(results, filename):
     # plot the accuracy of the model and save it to file
-    plt.plot(history.history['acc'])
-    plt.plot(history.history['val_acc'])
+    plt.plot(results.history['acc'])
+    plt.plot(results.history['val_acc'])
     plt.title('model accuracy')
     plt.ylabel('accuracy')
     plt.xlabel('epoch')
@@ -197,8 +197,8 @@ def plot_history(history, filename):
     plt.clf()
 
     # plot the loss of the model and save it to file
-    plt.plot(history.history['loss'])
-    plt.plot(history.history['val_loss'])
+    plt.plot(results.history['loss'])
+    plt.plot(results.history['val_loss'])
     plt.title('model loss')
     plt.ylabel('loss')
     plt.xlabel('epoch')
@@ -255,7 +255,7 @@ if __name__ == "__main__":
     # TODO - EXPERIMENT: try training with different # of batch sizes and epochs
     gen_filename = os.path.join(GENTEXT_FOLDER, "gen_text_" + re.sub('\.txt$', '', filename) + "_" + TIMESTAMP)
     examples_file = open(gen_filename, "w")
-    history = model.fit_generator(generator(sequences, next_words, BATCH_SIZE),
+    results = model.fit_generator(generator(sequences, next_words, BATCH_SIZE),
                             steps_per_epoch=int(len(sequences)/BATCH_SIZE) + 1,
                             epochs=100,
                             callbacks=callbacks_list,
@@ -263,4 +263,4 @@ if __name__ == "__main__":
                             validation_steps=int(len(sequences_test)/BATCH_SIZE) + 1)
 
     # visualization
-    plot_history(history, filename)
+    plot_history(results, filename)
