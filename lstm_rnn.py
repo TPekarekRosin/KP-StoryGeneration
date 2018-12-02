@@ -208,9 +208,9 @@ if __name__ == "__main__":
     with open(filename) as file:
         words_in_text = preprocess(file.read())
 
-    words = set(words_in_text)
-    word_indices = dict((c, i) for i, c in enumerate(words))
-    indices_word = dict((i, c) for i, c in enumerate(words))
+    words_in_text = set(words_in_text)
+    word_indices = dict((w, i) for i, w in enumerate(words_in_text))
+    indices_word = dict((i, w) for i, w in enumerate(words_in_text))
 
     # SEQUENCE THE TEXT
     sequences = []
