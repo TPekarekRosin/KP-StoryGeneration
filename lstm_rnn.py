@@ -181,7 +181,9 @@ def on_epoch_end(epoch, logs):
     examples_file.flush()
 
 
-def plot_history(results, input_filename):
+def plot_accuracy(results, input_filename):
+    plt.clf()
+
     # plot the accuracy of the model and save it to file
     plt.plot(results.history['acc'])
     plt.plot(results.history['val_acc'])
@@ -194,6 +196,8 @@ def plot_history(results, input_filename):
 
     plt.savefig(path_acc, bbox_inches='tight')
 
+
+def plot_loss(results, input_filename):
     plt.clf()
 
     # plot the loss of the model and save it to file
@@ -263,4 +267,5 @@ if __name__ == "__main__":
                             validation_steps=int(len(sequences_test)/BATCH_SIZE) + 1)
 
     # visualization
-    plot_history(results, input_filename)
+    plot_accuracy(results, input_filename)
+    plot_loss(results, input_filename)
