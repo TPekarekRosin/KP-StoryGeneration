@@ -7,10 +7,14 @@ from keras.preprocessing import sequence
 import urllib
 import collections
 import os
+import sys
 import zipfile
 
 import numpy as np
 import tensorflow as tf
+
+from preprocess import preprocess
+
 
 def maybe_download(filename, url, expected_bytes):
     """Download a file if not present, and make sure it's the right size."""
@@ -34,10 +38,10 @@ def read_data(filename):
     return data
 
 
-def build_dataset(words, n_words):
+def build_dataset(words):
     """Process raw inputs into a dataset."""
     count = [['UNK', -1]]
-    count.extend(collections.Counter(words).most_common(n_words - 1))
+    count.extend(collections.Counter(words).most_common())
     dictionary = dict()
     for word, _ in count:
         dictionary[word] = len(dictionary)
@@ -54,18 +58,17 @@ def build_dataset(words, n_words):
     reversed_dictionary = dict(zip(dictionary.values(), dictionary.keys()))
     return data, count, dictionary, reversed_dictionary
 
-def collect_data(vocabulary_size=10000):
-    url = 'http://mattmahoney.net/dc/'
-    filename = maybe_download('text8.zip', url, 31344016)
-    vocabulary = read_data(filename)
+def collect_data(input_filename):
+    with open(input_filename) as file:
+        vocabulary = preprocess(file.read())
     print(vocabulary[:7])
-    data, count, dictionary, reverse_dictionary = build_dataset(vocabulary,
-                                                                vocabulary_size)
+    data, count, dictionary, reverse_dictionary = build_dataset(vocabulary)
     del vocabulary  # Hint to reduce memory.
     return data, count, dictionary, reverse_dictionary
 
-vocab_size = 10000
-data, count, dictionary, reverse_dictionary = collect_data(vocabulary_size=vocab_size)
+input_filename = sys.argv[1]
+data, count, dictionary, reverse_dictionary = collect_data(input_filename)
+vocab_size = len(dictionary)
 print(data[:7])
 
 window_size = 3
