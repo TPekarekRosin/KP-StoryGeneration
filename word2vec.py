@@ -64,16 +64,19 @@ def build_dataset(words):
     reversed_dictionary = dict(zip(dictionary.values(), dictionary.keys()))
     return data, count, dictionary, reversed_dictionary
 
-def collect_data(input_filename):
-    with open(input_filename) as file:
-        vocabulary = preprocess(file.read())
+def collect_data(input_filenames):
+    vocabulary = []
+    for filename in input_filenames:
+        with open(filename, encoding="ISO-8859-1") as file:
+            vocabulary.extend(preprocess(file.read()))
+
     print(vocabulary[:7])
     data, count, dictionary, reverse_dictionary = build_dataset(vocabulary)
     del vocabulary  # Hint to reduce memory.
     return data, count, dictionary, reverse_dictionary
 
-input_filename = sys.argv[1]
-data, count, dictionary, reverse_dictionary = collect_data(input_filename)
+input_filenames = sys.argv[1:]
+data, count, dictionary, reverse_dictionary = collect_data(input_filenames)
 vocab_size = len(dictionary)
 print(data[:7])
 
