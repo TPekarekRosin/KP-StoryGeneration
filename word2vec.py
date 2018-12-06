@@ -95,19 +95,19 @@ context = embedding(input_context)
 context = Reshape((vector_dim, 1))(context)
 
 # setup a cosine similarity operation which will be output in a secondary model
-similarity = merge([target, context], mode='cos', dot_axes=0)
+similarity = merge.dot([target, context], axes=0, normalize=True)
 
 # now perform the dot product operation to get a similarity measure
-dot_product = merge([target, context], mode='dot', dot_axes=1)
+dot_product = merge.dot([target, context], axes=1, normalize=False)
 dot_product = Reshape((1,))(dot_product)
 # add the sigmoid output layer
 output = Dense(1, activation='sigmoid')(dot_product)
 # create the primary training model
-model = Model(input=[input_target, input_context], output=output)
+model = Model(inputs=[input_target, input_context], outputs=output)
 model.compile(loss='binary_crossentropy', optimizer='rmsprop')
 
 # create a secondary validation model to run our similarity checks during training
-validation_model = Model(input=[input_target, input_context], output=similarity)
+validation_model = Model(inputs=[input_target, input_context], outputs=similarity)
 
 
 class SimilarityCallback:
