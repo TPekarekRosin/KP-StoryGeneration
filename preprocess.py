@@ -55,6 +55,24 @@ def preprocess(text):
                 _words.append(w)
     words = _words
 
+    # Separate single-quotes into their own words if
+    # they appear at the beginning of an existing word.
+    _words = []
+    for word in words:
+        for w in re.split(r'(^\')', word):
+            if w != '':
+                _words.append(w)
+    words = _words
+
+    # Separate single-quotes into their own words if
+    # they appear at the end of an existing word.
+    _words = []
+    for word in words:
+        for w in re.split(r'(\'$)', word):
+            if w != '':
+                _words.append(w)
+    words = _words
+
     # Return the preprocessed list of words from the text.
     return words
 
