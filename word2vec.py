@@ -6,6 +6,7 @@ from keras.preprocessing import sequence
 
 import urllib
 import collections
+import datetime
 import os
 import sys
 import zipfile
@@ -14,6 +15,11 @@ import numpy as np
 import tensorflow as tf
 
 from preprocess import preprocess
+
+
+MODELS_FOLDER = os.path.join(os.path.dirname(__file__), "models")
+
+TIMESTAMP = datetime.datetime.now().strftime("%Y-%m-%d-%H%M%S")
 
 
 def maybe_download(filename, url, expected_bytes):
@@ -152,3 +158,16 @@ for cnt in range(epochs):
         print("Iteration {}, loss={}".format(cnt, loss))
     if cnt % 10000 == 0:
         sim_cb.run_sim()
+
+# Create folders for any generated files.
+os.makedirs(MODELS_FOLDER, exist_ok=True)
+saved_model_prefix = os.path.join(MODELS_FOLDER, "word2vec_model_" + TIMESTAMP)
+
+# serialize model to JSON
+model_json = model.to_json()
+with open(saved_model_prefix + ".json", "w") as json_file:
+    json_file.write(model_json)
+
+# serialize weights to HDF5
+model.save_weights(saved_model_prefix + ".h5")
+print("Saved model to disk")
