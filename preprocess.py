@@ -3,7 +3,10 @@ import sys
 
 
 def preprocess(text):
-    # First, bring all words separated across lines back together.
+    # First, make all the text lowercase.
+    text = text.lower()
+
+    # Bring all words separated across lines back together.
     # This also accounts for multiple new lines and indents between when the
     # word on the first line ends and the rest of the word is later on
     # (e.g. "exagg-\n\n    erated" --> "exaggerated\n\n    ").
