@@ -14,7 +14,7 @@ import zipfile
 import numpy as np
 import tensorflow as tf
 
-from preprocess import preprocess
+from utils import preprocess
 
 
 MODELS_FOLDER = os.path.join(os.path.dirname(__file__), "models")

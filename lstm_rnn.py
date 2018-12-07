@@ -27,7 +27,7 @@ from keras.layers import Activation, Bidirectional, Dense, Dropout, Embedding, L
 from keras.models import Sequential
 from keras.utils import np_utils
 
-from preprocess import preprocess
+from utils import preprocess
 
 
 # SET CONSTANTS
