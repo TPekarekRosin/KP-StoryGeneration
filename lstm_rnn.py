@@ -27,7 +27,7 @@ from keras.layers import Activation, Bidirectional, Dense, Dropout, Embedding, L
 from keras.models import Sequential
 from keras.utils import np_utils
 
-from utils import preprocess
+from utils import build_vocabulary
 
 
 # SET CONSTANTS
@@ -81,11 +81,11 @@ def generator(sequences, next_words):
 def get_model(dropout=0.2):
     print('Build model...')
     model = Sequential()
-    model.add(Embedding(input_dim=len(vocabulary), output_dim=1024)) #turns indexes into dense vectors of fixed size
+    model.add(Embedding(input_dim=len(word_indices), output_dim=1024)) #turns indexes into dense vectors of fixed size
     model.add(Bidirectional(LSTM(128)))
     if dropout > 0:
         model.add(Dropout(dropout))
-    model.add(Dense(len(vocabulary)))
+    model.add(Dense(len(word_indices)))
     model.add(Activation('softmax'))
     return model
 
@@ -173,21 +173,14 @@ if __name__ == "__main__":
     # pass in the text file name as the first argument
     # e.g. `$ python lstm_rnn.py sample1.txt`
     input_filename = sys.argv[1]
-    with open(input_filename) as file:
-        words_in_text = preprocess(file.read())
+    words, indices, count, word_indices, indices_word = build_vocabulary([input_filename])
 
     # SEQUENCE THE TEXT
     sequences = []
     next_words = []
-    for i in range(0, len(words_in_text) - SEQUENCE_LEN, STEP):
-        sequences.append(words_in_text[i:i+SEQUENCE_LEN])
-        next_words.append(words_in_text[i+SEQUENCE_LEN])
-
-    # Condense the fully tokenized text into a 'set' of unique words
-    # and build a set of indices into it.
-    vocabulary = set(words_in_text)
-    word_indices = dict((w, i) for i, w in enumerate(vocabulary))
-    indices_word = dict((i, w) for i, w in enumerate(vocabulary))
+    for i in range(0, len(words) - SEQUENCE_LEN, STEP):
+        sequences.append(words[i:i+SEQUENCE_LEN])
+        next_words.append(words[i+SEQUENCE_LEN])
 
     # SPLIT DATA INTO TRAIN AND TEST DATA
     (sequences_train, next_words_train), (sequences_test, next_words_test) = shuffle_and_split_training_set(sequences, next_words)
@@ -199,7 +192,7 @@ if __name__ == "__main__":
     # CREATE CALLBACKS FOR WHEN WE RUN THE MODEL
     # set the file path for storing the output from the model
     checkpoint_filename = os.path.join(CHECKPOINTS_FOLDER, "LSTM_Sherlock-epoch{epoch:03d}-vocabulary%d-sequence%d-loss{loss:.4f}-acc{acc:.4f}-val_loss{val_loss:.4f}-val_acc{val_acc:.4f}") % (
-        len(vocabulary),
+        len(word_indices),
         SEQUENCE_LEN
     )
     checkpoint_callback = ModelCheckpoint(checkpoint_filename, monitor='val_acc', save_best_only=True) # save the weights every epoch

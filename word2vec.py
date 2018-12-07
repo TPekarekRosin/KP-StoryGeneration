@@ -5,7 +5,6 @@ from keras.preprocessing.sequence import skipgrams
 from keras.preprocessing import sequence
 
 import urllib
-import collections
 import datetime
 import os
 import sys
@@ -14,7 +13,7 @@ import zipfile
 import numpy as np
 import tensorflow as tf
 
-from utils import preprocess
+from utils import build_vocabulary
 
 
 MODELS_FOLDER = os.path.join(os.path.dirname(__file__), "models")
@@ -22,41 +21,8 @@ MODELS_FOLDER = os.path.join(os.path.dirname(__file__), "models")
 TIMESTAMP = datetime.datetime.now().strftime("%Y-%m-%d-%H%M%S")
 
 
-def build_dataset(words):
-    """Process raw inputs into a dataset."""
-    count = [['UNK', -1]]
-    count.extend(collections.Counter(words).most_common())
-    dictionary = dict()
-    for word, _ in count:
-        dictionary[word] = len(dictionary)
-    indices = list()
-    unk_count = 0
-    for word in words:
-        if word in dictionary:
-            index = dictionary[word]
-        else:
-            index = 0  # dictionary['UNK']
-            unk_count += 1
-        indices.append(index)
-    count[0][1] = unk_count
-    reversed_dictionary = dict(zip(dictionary.values(), dictionary.keys()))
-    return indices, count, dictionary, reversed_dictionary
-
-
-def collect_data(input_filenames):
-    words = []
-    for filename in input_filenames:
-        with open(filename, encoding="ISO-8859-1") as file:
-            words.extend(preprocess(file.read()))
-
-    print(words[:7])
-    indices, count, dictionary, reverse_dictionary = build_dataset(words)
-    del words  # Hint to reduce memory.
-    return indices, count, dictionary, reverse_dictionary
-
-
 input_filenames = sys.argv[1:]
-indices, count, dictionary, reverse_dictionary = collect_data(input_filenames)
+_, indices, count, dictionary, reverse_dictionary = build_vocabulary(input_filenames)
 vocab_size = len(dictionary)
 print(indices[:7])
 
@@ -126,6 +92,8 @@ class SimilarityCallback:
             out = validation_model.predict_on_batch([in_arr1, in_arr2])
             sim[i] = out
         return sim
+
+
 sim_cb = SimilarityCallback()
 
 arr_1 = np.zeros((1,))

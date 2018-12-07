@@ -1,8 +1,9 @@
+import collections
 import re
 import sys
 
 
-def preprocess(text):
+def _preprocess(text):
     # First, make all the text lowercase.
     text = text.lower()
 
@@ -77,9 +78,39 @@ def preprocess(text):
     return words
 
 
-if __name__ == "__main__":
-    input_filename = sys.argv[1]
-    with open(input_filename) as file:
-        words_in_text = preprocess(file.read())
+def _build_dataset(words):
+    """Process raw inputs into a dataset."""
+    count = [['UNK', -1]]
+    count.extend(collections.Counter(words).most_common())
+    dictionary = dict()
+    for word, _ in count:
+        dictionary[word] = len(dictionary)
+    indices = list()
+    unk_count = 0
+    for word in words:
+        if word in dictionary:
+            index = dictionary[word]
+        else:
+            index = 0  # dictionary['UNK']
+            unk_count += 1
+        indices.append(index)
+    count[0][1] = unk_count
+    reversed_dictionary = dict(zip(dictionary.values(), dictionary.keys()))
+    return indices, count, dictionary, reversed_dictionary
 
-    print(words_in_text)
+
+def build_vocabulary(input_filenames):
+    words = []
+    for filename in input_filenames:
+        with open(filename, encoding="ISO-8859-1") as file:
+            words.extend(_preprocess(file.read()))
+
+    indices, count, dictionary, reverse_dictionary = _build_dataset(words)
+    return words, indices, count, dictionary, reverse_dictionary
+
+
+if __name__ == "__main__":
+    input_filenames = sys.argv[1:]
+    words, indices, count, dictionary, reverse_dictionary = build_vocabulary(input_filenames)
+
+    print(dictionary)
