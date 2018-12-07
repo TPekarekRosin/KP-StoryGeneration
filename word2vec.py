@@ -51,7 +51,7 @@ def build_dataset(words):
     dictionary = dict()
     for word, _ in count:
         dictionary[word] = len(dictionary)
-    data = list()
+    indices = list()
     unk_count = 0
     for word in words:
         if word in dictionary:
@@ -59,26 +59,28 @@ def build_dataset(words):
         else:
             index = 0  # dictionary['UNK']
             unk_count += 1
-        data.append(index)
+        indices.append(index)
     count[0][1] = unk_count
     reversed_dictionary = dict(zip(dictionary.values(), dictionary.keys()))
-    return data, count, dictionary, reversed_dictionary
+    return indices, count, dictionary, reversed_dictionary
+
 
 def collect_data(input_filenames):
-    vocabulary = []
+    words = []
     for filename in input_filenames:
         with open(filename, encoding="ISO-8859-1") as file:
-            vocabulary.extend(preprocess(file.read()))
+            words.extend(preprocess(file.read()))
 
-    print(vocabulary[:7])
-    data, count, dictionary, reverse_dictionary = build_dataset(vocabulary)
-    del vocabulary  # Hint to reduce memory.
-    return data, count, dictionary, reverse_dictionary
+    print(words[:7])
+    indices, count, dictionary, reverse_dictionary = build_dataset(words)
+    del words  # Hint to reduce memory.
+    return indices, count, dictionary, reverse_dictionary
+
 
 input_filenames = sys.argv[1:]
-data, count, dictionary, reverse_dictionary = collect_data(input_filenames)
+indices, count, dictionary, reverse_dictionary = collect_data(input_filenames)
 vocab_size = len(dictionary)
-print(data[:7])
+print(indices[:7])
 
 window_size = 3
 vector_dim = 300
@@ -89,7 +91,7 @@ valid_window = 100  # Only pick dev samples in the head of the distribution.
 valid_examples = np.random.choice(valid_window, valid_size, replace=False)
 
 sampling_table = sequence.make_sampling_table(vocab_size)
-couples, labels = skipgrams(data, vocab_size, window_size=window_size, sampling_table=sampling_table)
+couples, labels = skipgrams(indices, vocab_size, window_size=window_size, sampling_table=sampling_table)
 word_target, word_context = zip(*couples)
 word_target = np.array(word_target, dtype="int32")
 word_context = np.array(word_context, dtype="int32")
