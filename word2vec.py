@@ -5,7 +5,6 @@ from keras.preprocessing.sequence import skipgrams
 from keras.preprocessing import sequence
 
 import urllib
-import collections
 import datetime
 import os
 import sys
@@ -14,7 +13,7 @@ import zipfile
 import numpy as np
 import tensorflow as tf
 
-from preprocess import preprocess
+from utils import build_vocabulary
 
 
 MODELS_FOLDER = os.path.join(os.path.dirname(__file__), "models")
@@ -22,63 +21,10 @@ MODELS_FOLDER = os.path.join(os.path.dirname(__file__), "models")
 TIMESTAMP = datetime.datetime.now().strftime("%Y-%m-%d-%H%M%S")
 
 
-def maybe_download(filename, url, expected_bytes):
-    """Download a file if not present, and make sure it's the right size."""
-    if not os.path.exists(filename):
-        filename, _ = urllib.urlretrieve(url + filename, filename)
-    statinfo = os.stat(filename)
-    if statinfo.st_size == expected_bytes:
-        print('Found and verified', filename)
-    else:
-        print(statinfo.st_size)
-        raise Exception(
-            'Failed to verify ' + filename + '. Can you get to it with a browser?')
-    return filename
-
-
-# Read the data into a list of strings.
-def read_data(filename):
-    """Extract the first file enclosed in a zip file as a list of words."""
-    with zipfile.ZipFile(filename) as f:
-        data = tf.compat.as_str(f.read(f.namelist()[0])).split()
-    return data
-
-
-def build_dataset(words):
-    """Process raw inputs into a dataset."""
-    count = [['UNK', -1]]
-    count.extend(collections.Counter(words).most_common())
-    dictionary = dict()
-    for word, _ in count:
-        dictionary[word] = len(dictionary)
-    data = list()
-    unk_count = 0
-    for word in words:
-        if word in dictionary:
-            index = dictionary[word]
-        else:
-            index = 0  # dictionary['UNK']
-            unk_count += 1
-        data.append(index)
-    count[0][1] = unk_count
-    reversed_dictionary = dict(zip(dictionary.values(), dictionary.keys()))
-    return data, count, dictionary, reversed_dictionary
-
-def collect_data(input_filenames):
-    vocabulary = []
-    for filename in input_filenames:
-        with open(filename, encoding="ISO-8859-1") as file:
-            vocabulary.extend(preprocess(file.read()))
-
-    print(vocabulary[:7])
-    data, count, dictionary, reverse_dictionary = build_dataset(vocabulary)
-    del vocabulary  # Hint to reduce memory.
-    return data, count, dictionary, reverse_dictionary
-
 input_filenames = sys.argv[1:]
-data, count, dictionary, reverse_dictionary = collect_data(input_filenames)
+_, indices, count, dictionary, reverse_dictionary = build_vocabulary(input_filenames)
 vocab_size = len(dictionary)
-print(data[:7])
+print(indices[:7])
 
 window_size = 3
 vector_dim = 300
@@ -89,7 +35,7 @@ valid_window = 100  # Only pick dev samples in the head of the distribution.
 valid_examples = np.random.choice(valid_window, valid_size, replace=False)
 
 sampling_table = sequence.make_sampling_table(vocab_size)
-couples, labels = skipgrams(data, vocab_size, window_size=window_size, sampling_table=sampling_table)
+couples, labels = skipgrams(indices, vocab_size, window_size=window_size, sampling_table=sampling_table)
 word_target, word_context = zip(*couples)
 word_target = np.array(word_target, dtype="int32")
 word_context = np.array(word_context, dtype="int32")
@@ -146,6 +92,8 @@ class SimilarityCallback:
             out = validation_model.predict_on_batch([in_arr1, in_arr2])
             sim[i] = out
         return sim
+
+
 sim_cb = SimilarityCallback()
 
 arr_1 = np.zeros((1,))
