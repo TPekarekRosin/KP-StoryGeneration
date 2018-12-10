@@ -24,7 +24,7 @@ import matplotlib.pyplot as plt
 
 from keras.callbacks import EarlyStopping, LambdaCallback, ModelCheckpoint
 from keras.layers import Activation, Bidirectional, Dense, Dropout, Embedding, LSTM
-from keras.models import Sequential
+from keras.models import Sequential, load_model
 from keras.utils import np_utils
 
 from utils import build_vocabulary
@@ -42,9 +42,13 @@ BATCH_SIZE = 32 # batch size of the data to run our model over
 CHECKPOINTS_FOLDER = os.path.join(os.path.dirname(__file__), "checkpoints")
 GENTEXT_FOLDER = os.path.join(os.path.dirname(__file__), "gentext")
 PLOTS_FOLDER = os.path.join(os.path.dirname(__file__), "plots")
+MODELS_FOLDER = os.path.join(os.path.dirname(__file__), "models")
 
 # Timestamp used for any generated files.
 TIMESTAMP = datetime.datetime.now().strftime("%Y-%m-%d-%H%M%S")
+
+# load the pre-trained word2vec-model
+WORD2VEC_MODEL = load_model(MODELS_FOLDER + "/word2vec_model_2018-12-06-222657.h5")
 
 
 # TODO - EXPERIMENT: try using different percentages of train and test data
@@ -81,12 +85,15 @@ def generator(sequences, next_words):
 def get_model(dropout=0.2):
     print('Build model...')
     model = Sequential()
-    model.add(Embedding(input_dim=len(word_indices), output_dim=1024)) #turns indexes into dense vectors of fixed size
+    # TODO exchange input_dim and output_dim
+    model.add(Embedding(input_dim=len(word_indices), output_dim=300, name='embedding')) 
     model.add(Bidirectional(LSTM(128)))
     if dropout > 0:
         model.add(Dropout(dropout))
     model.add(Dense(len(word_indices)))
     model.add(Activation('softmax'))
+    # adds the pretrained weights to the embedding layer by name
+    model.load_weights(WORD2VEC_MODEL, by_name=True)
     return model
 
 
