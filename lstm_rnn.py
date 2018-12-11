@@ -85,7 +85,7 @@ def get_model(dropout=0.2):
     print('Build model...')
     model = Sequential()
     # TODO exchange input_dim and output_dim to CONSTANTS
-    model.add(Embedding(input_dim=17961, output_dim=300, name='embedding')) 
+    model.add(Embedding(input_dim=17961, output_dim=300, name='embedding'))
     model.add(Bidirectional(LSTM(128), name='lstm'))
     if dropout > 0:
         model.add(Dropout(dropout))
