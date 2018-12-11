@@ -137,7 +137,7 @@ def gentext(epoch, logs):
     gentext_file.flush()
 
 
-def plot_accuracy(results, input_filename):
+def plot_accuracy(results):
     plt.clf()
 
     # plot the accuracy of the model and save it to file
@@ -148,12 +148,12 @@ def plot_accuracy(results, input_filename):
     plt.xlabel('epoch')
     plt.legend(['train', 'test'], loc='upper left')
 
-    path_acc = os.path.join(PLOTS_FOLDER, "acc_" + re.sub('\.txt$', '', input_filename) + "_" + TIMESTAMP)
+    path_acc = os.path.join(PLOTS_FOLDER, "lstm_plot_acc_" + TIMESTAMP)
 
     plt.savefig(path_acc, bbox_inches='tight')
 
 
-def plot_loss(results, input_filename):
+def plot_loss(results):
     plt.clf()
 
     # plot the loss of the model and save it to file
@@ -164,7 +164,7 @@ def plot_loss(results, input_filename):
     plt.xlabel('epoch')
     plt.legend(['train', 'test'], loc='upper left')
 
-    path_loss = os.path.join(PLOTS_FOLDER, "loss_" + re.sub('\.txt$', '', input_filename) + "_" + TIMESTAMP)
+    path_loss = os.path.join(PLOTS_FOLDER, "lstm_plot_loss_" + TIMESTAMP)
 
     plt.savefig(path_loss, bbox_inches='tight')
 
@@ -178,8 +178,8 @@ if __name__ == "__main__":
     # PREPROCESS THE DATA
     # pass in the text file name as the first argument
     # e.g. `$ python lstm_rnn.py sample1.txt`
-    input_filename = sys.argv[1]
-    words, indices, count, word_indices, indices_word = build_vocabulary([input_filename])
+    input_filenames = sys.argv[1:]
+    words, indices, count, word_indices, indices_word = build_vocabulary(input_filenames)
 
     # SEQUENCE THE TEXT
     sequences = []
@@ -207,7 +207,7 @@ if __name__ == "__main__":
 
     # SET THE TRAINING PARAMETERS, THEN FIT THE MODEL
     # TODO - EXPERIMENT: try training with different # of batch sizes and epochs
-    gentext_filename = os.path.join(GENTEXT_FOLDER, re.sub('\.txt$', '', input_filename) + "_" + TIMESTAMP)
+    gentext_filename = os.path.join(GENTEXT_FOLDER, "lstm_" + TIMESTAMP)
     gentext_file = open(gentext_filename, "w")
     results = model.fit_generator(
         epochs=NUM_EPOCHS,
@@ -219,5 +219,5 @@ if __name__ == "__main__":
     gentext_file.close()
 
     # visualization
-    plot_accuracy(results, input_filename)
-    plot_loss(results, input_filename)
+    plot_accuracy(results)
+    plot_loss(results)
