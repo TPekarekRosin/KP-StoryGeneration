@@ -172,6 +172,7 @@ if __name__ == "__main__":
     # Create folders for any generated files.
     os.makedirs(GENTEXT_FOLDER, exist_ok=True)
     os.makedirs(PLOTS_FOLDER, exist_ok=True)
+    os.makedirs(MODELS_FOLDER, exist_ok=True)
 
     # PREPROCESS THE DATA
     # pass in the text file name as the first argument
@@ -208,6 +209,16 @@ if __name__ == "__main__":
         validation_steps=int(len(sequences_test)/BATCH_SIZE) + 1,
         callbacks=[gentext_callback])
     gentext_file.close()
+
+    # serialize model to JSON
+    saved_model_prefix = os.path.join(MODELS_FOLDER, "lstm_model_" + TIMESTAMP)
+    model_json = model.to_json()
+    with open(saved_model_prefix + ".json", "w") as json_file:
+        json_file.write(model_json)
+
+    # serialize weights to HDF5
+    model.save_weights(saved_model_prefix + ".h5")
+    print("Saved model to disk")
 
     # visualization
     plot_accuracy(results)
