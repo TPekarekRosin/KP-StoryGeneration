@@ -49,7 +49,6 @@ TIMESTAMP = datetime.datetime.now().strftime("%Y-%m-%d-%H%M%S")
 WORD2VEC_PATH = MODELS_FOLDER + "/word2vec_model_2018-12-06-222657.h5"
 
 
-# TODO - EXPERIMENT: try using different percentages of train and test data
 def shuffle_and_split_training_set(sequences, next_words):
     _sequences = []
     _next_words = []
@@ -79,7 +78,6 @@ def generator(sequences, next_words):
         yield x, y
 
 
-# TODO - EXPERIMENT: try different network structures and parameters
 def get_model(dropout=0.2):
     print('Build model...')
     model = Sequential()
@@ -198,7 +196,6 @@ if __name__ == "__main__":
     gentext_callback = LambdaCallback(on_epoch_end=gentext)
 
     # SET THE TRAINING PARAMETERS, THEN FIT THE MODEL
-    # TODO - EXPERIMENT: try training with different # of batch sizes and epochs
     gentext_filename = os.path.join(GENTEXT_FOLDER, "lstm_" + TIMESTAMP)
     gentext_file = open(gentext_filename, "w")
     results = model.fit_generator(
