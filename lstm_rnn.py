@@ -82,6 +82,10 @@ def get_model(dropout=0.2):
     print('Build model...')
     model = Sequential()
     # TODO exchange input_dim and output_dim to CONSTANTS
+    # The 'input_dim' is the size of the 'word_indices' dictionary.
+    # The 'output_dim' is the output dimension of the word2vec model.
+    # The name 'embedding' comes from the name for the layer used in the
+    # original word2vec model.
     model.add(Embedding(input_dim=17961, output_dim=300, name='embedding'))
     model.add(Bidirectional(LSTM(128), name='lstm'))
     if dropout > 0:
