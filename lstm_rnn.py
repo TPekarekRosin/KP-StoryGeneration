@@ -22,7 +22,7 @@ import numpy as np
 
 import matplotlib.pyplot as plt
 
-from keras.callbacks import EarlyStopping, LambdaCallback, ModelCheckpoint
+from keras.callbacks import LambdaCallback
 from keras.layers import Activation, Bidirectional, Dense, Dropout, Embedding, LSTM
 from keras.models import Sequential, load_model
 from keras.utils import np_utils
@@ -39,7 +39,6 @@ NUM_EPOCHS = 100 # number of epochs to run our model for
 BATCH_SIZE = 32 # batch size of the data to run our model over
 
 # Build path names to local folders for any generated files.
-CHECKPOINTS_FOLDER = os.path.join(os.path.dirname(__file__), "checkpoints")
 GENTEXT_FOLDER = os.path.join(os.path.dirname(__file__), "gentext")
 PLOTS_FOLDER = os.path.join(os.path.dirname(__file__), "plots")
 MODELS_FOLDER = os.path.join(os.path.dirname(__file__), "models")
@@ -171,7 +170,6 @@ def plot_loss(results):
 
 if __name__ == "__main__":
     # Create folders for any generated files.
-    os.makedirs(CHECKPOINTS_FOLDER, exist_ok=True)
     os.makedirs(GENTEXT_FOLDER, exist_ok=True)
     os.makedirs(PLOTS_FOLDER, exist_ok=True)
 
@@ -195,15 +193,8 @@ if __name__ == "__main__":
     model = get_model()
     model.compile(loss='sparse_categorical_crossentropy', optimizer="adam", metrics=['accuracy'])
 
-    # CREATE CALLBACKS FOR WHEN WE RUN THE MODEL
-    # set the file path for storing the output from the model
-    checkpoint_filename = os.path.join(CHECKPOINTS_FOLDER, "LSTM_Sherlock-epoch{epoch:03d}-vocabulary%d-sequence%d-loss{loss:.4f}-acc{acc:.4f}-val_loss{val_loss:.4f}-val_acc{val_acc:.4f}") % (
-        len(word_indices),
-        SEQUENCE_LEN
-    )
-    checkpoint_callback = ModelCheckpoint(checkpoint_filename, monitor='val_acc', save_best_only=True) # save the weights every epoch
+    # SET A CALLBACK TO PRINT SAMPLE OUTPUT DURING TRAINING
     gentext_callback = LambdaCallback(on_epoch_end=gentext)
-    early_stopping_callback = EarlyStopping(monitor='val_acc', patience=20) # halt the training if there no gain in the loss in 5 epochs
 
     # SET THE TRAINING PARAMETERS, THEN FIT THE MODEL
     # TODO - EXPERIMENT: try training with different # of batch sizes and epochs
@@ -215,7 +206,7 @@ if __name__ == "__main__":
         steps_per_epoch=int(len(sequences_train)/BATCH_SIZE) + 1,
         validation_data=generator(sequences_test, next_words_test),
         validation_steps=int(len(sequences_test)/BATCH_SIZE) + 1,
-        callbacks=[checkpoint_callback, gentext_callback, early_stopping_callback])
+        callbacks=[gentext_callback])
     gentext_file.close()
 
     # visualization
