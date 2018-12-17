@@ -22,7 +22,7 @@ import numpy as np
 
 import matplotlib.pyplot as plt
 
-from keras.callbacks import EarlyStopping, LambdaCallback, ModelCheckpoint
+from keras.callbacks import LambdaCallback
 from keras.layers import Activation, Bidirectional, Dense, Dropout, Embedding, LSTM
 from keras.models import Sequential, load_model
 from keras.utils import np_utils
@@ -32,14 +32,14 @@ from utils import build_vocabulary
 
 # SET CONSTANTS
 # All of these paramters are tunable for experimentation.
-SEQUENCE_LEN = 10 # number of words used in the seeded sequence
+# The values chosen below are set to reflect training on a GPU.
+SEQUENCE_LEN = 20 # number of words used in the seeded sequence
 STEP = 1 # increment by a number of words when sequencing the text
 PERCENTAGE_TO_TEST = 10 # percentage of the input to test the model on
-NUM_EPOCHS = 100 # number of epochs to run our model for
-BATCH_SIZE = 32 # batch size of the data to run our model over
+NUM_EPOCHS = 1000 # number of epochs to run our model for
+BATCH_SIZE = 8192 # batch size of the data to run our model over
 
 # Build path names to local folders for any generated files.
-CHECKPOINTS_FOLDER = os.path.join(os.path.dirname(__file__), "checkpoints")
 GENTEXT_FOLDER = os.path.join(os.path.dirname(__file__), "gentext")
 PLOTS_FOLDER = os.path.join(os.path.dirname(__file__), "plots")
 MODELS_FOLDER = os.path.join(os.path.dirname(__file__), "models")
@@ -50,7 +50,6 @@ TIMESTAMP = datetime.datetime.now().strftime("%Y-%m-%d-%H%M%S")
 WORD2VEC_PATH = MODELS_FOLDER + "/word2vec_model_2018-12-06-222657.h5"
 
 
-# TODO - EXPERIMENT: try using different percentages of train and test data
 def shuffle_and_split_training_set(sequences, next_words):
     _sequences = []
     _next_words = []
@@ -80,11 +79,14 @@ def generator(sequences, next_words):
         yield x, y
 
 
-# TODO - EXPERIMENT: try different network structures and parameters
 def get_model(dropout=0.2):
     print('Build model...')
     model = Sequential()
     # TODO exchange input_dim and output_dim to CONSTANTS
+    # The 'input_dim' is the size of the 'word_indices' dictionary.
+    # The 'output_dim' is the output dimension of the word2vec model.
+    # The name 'embedding' comes from the name for the layer used in the
+    # original word2vec model.
     model.add(Embedding(input_dim=17961, output_dim=300, name='embedding'))
     model.add(Bidirectional(LSTM(128), name='lstm'))
     if dropout > 0:
@@ -171,9 +173,9 @@ def plot_loss(results):
 
 if __name__ == "__main__":
     # Create folders for any generated files.
-    os.makedirs(CHECKPOINTS_FOLDER, exist_ok=True)
     os.makedirs(GENTEXT_FOLDER, exist_ok=True)
     os.makedirs(PLOTS_FOLDER, exist_ok=True)
+    os.makedirs(MODELS_FOLDER, exist_ok=True)
 
     # PREPROCESS THE DATA
     # pass in the text file name as the first argument
@@ -195,18 +197,10 @@ if __name__ == "__main__":
     model = get_model()
     model.compile(loss='sparse_categorical_crossentropy', optimizer="adam", metrics=['accuracy'])
 
-    # CREATE CALLBACKS FOR WHEN WE RUN THE MODEL
-    # set the file path for storing the output from the model
-    checkpoint_filename = os.path.join(CHECKPOINTS_FOLDER, "LSTM_Sherlock-epoch{epoch:03d}-vocabulary%d-sequence%d-loss{loss:.4f}-acc{acc:.4f}-val_loss{val_loss:.4f}-val_acc{val_acc:.4f}") % (
-        len(word_indices),
-        SEQUENCE_LEN
-    )
-    checkpoint_callback = ModelCheckpoint(checkpoint_filename, monitor='val_acc', save_best_only=True) # save the weights every epoch
+    # SET A CALLBACK TO PRINT SAMPLE OUTPUT DURING TRAINING
     gentext_callback = LambdaCallback(on_epoch_end=gentext)
-    early_stopping_callback = EarlyStopping(monitor='val_acc', patience=20) # halt the training if there no gain in the loss in 5 epochs
 
     # SET THE TRAINING PARAMETERS, THEN FIT THE MODEL
-    # TODO - EXPERIMENT: try training with different # of batch sizes and epochs
     gentext_filename = os.path.join(GENTEXT_FOLDER, "lstm_" + TIMESTAMP)
     gentext_file = open(gentext_filename, "w")
     results = model.fit_generator(
@@ -215,8 +209,18 @@ if __name__ == "__main__":
         steps_per_epoch=int(len(sequences_train)/BATCH_SIZE) + 1,
         validation_data=generator(sequences_test, next_words_test),
         validation_steps=int(len(sequences_test)/BATCH_SIZE) + 1,
-        callbacks=[checkpoint_callback, gentext_callback, early_stopping_callback])
+        callbacks=[gentext_callback])
     gentext_file.close()
+
+    # serialize model to JSON
+    saved_model_prefix = os.path.join(MODELS_FOLDER, "lstm_model_" + TIMESTAMP)
+    model_json = model.to_json()
+    with open(saved_model_prefix + ".json", "w") as json_file:
+        json_file.write(model_json)
+
+    # serialize weights to HDF5
+    model.save_weights(saved_model_prefix + ".h5")
+    print("Saved model to disk")
 
     # visualization
     plot_accuracy(results)
