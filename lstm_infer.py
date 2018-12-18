@@ -49,9 +49,8 @@ if __name__ == "__main__":
     while num_periods < NUM_PERIODS_UNTIL_STOP:
        lstm_output = lstm.predict(lstm_input)[0]
 
-       # Randomly select from the top 2 predicted words.
-       next_word_indices = (-lstm_output).argsort()
-       next_word_index = random.choice(next_word_indices[0:2])
+       # Select the top predicted word.
+       next_word_index = lstm_output.argmax()
 
        # Update the input sequence by shifting out the first word
        # and appending the most recently chosen word.
