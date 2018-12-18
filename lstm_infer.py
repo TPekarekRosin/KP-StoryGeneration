@@ -52,9 +52,17 @@ if __name__ == "__main__":
        # Select the top predicted word.
        next_word_index = lstm_output.argmax()
 
-       # Update the input sequence by shifting out the first word
+       # Get the next input sequence by shifting out the first word
        # and appending the most recently chosen word.
-       lstm_input[0] = np.append(lstm_input[0][1:], next_word_index)
+       new_lstm_input = np.append(lstm_input[0][1:], next_word_index)
+
+       # Break early if the new input sequence is identical to the previous one.
+       # If we didn't do this, we would be stuck in the same sequence forever.
+       if (new_lstm_input == lstm_input[0]).all():
+           break
+
+       # Otherwise update the input sequence and continue.
+       lstm_input[0] = new_lstm_input
 
        # Look up the next word in the dictionary and append it to the output.
        next_word = reverse_dictionary[next_word_index]
