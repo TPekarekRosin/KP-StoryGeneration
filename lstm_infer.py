@@ -34,14 +34,20 @@ if __name__ == "__main__":
     # Capture an initial input sequence of 20 words or less.
     input_seq = _preprocess("It was the best of times, it was the worst of times. That is what I hoped.")
 
-    # Copy the input sequence as the initial output.
-    output = input_seq[:]
+    # Copy the input sequence as the initial output (capping at SEQUENCE_LEN).
+    output = input_seq[:SEQUENCE_LEN]
 
-    # Convert the input sequence into a list of indices
-    # appropriate for passing to the LSTM model as input.
+    # Convert the input sequence (represented as the copied output) into a
+    # list of indices appropriate for passing to the LSTM model as input.
     lstm_input = np.zeros((1, SEQUENCE_LEN))
-    for i, word in enumerate(input_seq):
-        lstm_input[0, i] = dictionary[word]
+    for i, word in enumerate(output):
+        # Adjust the index to account for input
+        # sequences shorter than SEQUENCE_LEN.
+        adjusted_index = SEQUENCE_LEN - len(output) + i
+        if word not in dictionary:
+            lstm_input[0, adjusted_index] = 0
+        else:
+            lstm_input[0, adjusted_index] = dictionary[word]
 
     # Start predicting new words from the input
     # sequence and adding them to the output.
