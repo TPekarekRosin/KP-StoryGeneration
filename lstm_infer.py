@@ -32,7 +32,13 @@ if __name__ == "__main__":
     _, _, _, dictionary, reverse_dictionary = build_vocabulary(input_filenames)
 
     # Capture an initial input sequence of 20 words or less.
-    input_seq = _preprocess("It was the best of times, it was the worst of times. That is what I hoped.")
+    print("\n\n\n\n")
+    print("How would you like to start your Sherlock Holmes story?")
+    print("Please input up to 20 'words' (note that all punctuation will also be considered a 'word').")
+    print("Type your words here and press <ENTER> when you are done:")
+    print(">>> ", end="", flush=True)
+    input_seq = _preprocess(sys.stdin.readline())
+    print("\nProcessing...")
 
     # Copy the input sequence as the initial output (capping at SEQUENCE_LEN).
     output = input_seq[:SEQUENCE_LEN]
