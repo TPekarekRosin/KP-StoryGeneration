@@ -78,6 +78,32 @@ def _preprocess(text):
     return words
 
 
+def _postprocess(words):
+    # Join all the words with spaces.
+    text = " ".join(words)
+
+    # Remove all spaces preceding end-punctuation.
+    text = re.sub(r'( )([^\w])', r'\2', text)
+
+    # Remove all spaces following a double or single quote.
+    text = re.sub(r'([\"\'])( )', r'\1', text)
+
+    # Capitalize the very first 'word' character found in the text.
+    text = re.sub(r'(\w)', lambda x: x.group(1).upper(), text, count=1)
+
+    # Capitalize the first 'word' character following periods,
+    # question marks, and exclamation points.
+    text = re.sub(
+        r'([\.\!\?])([^\w]*)(\w)',
+        lambda x: x.group(1) + x.group(2) + x.group(3).upper(),
+        text)
+
+    # Capitalize all standalone instances of 'i'.
+    text = re.sub(r'(\s+i\s+)', lambda x: x.group(1).upper(), text)
+
+    return text
+
+
 def _build_dataset(words):
     """Process raw inputs into a dataset."""
     count = [['UNK', -1]]
