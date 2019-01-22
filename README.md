@@ -1,6 +1,6 @@
 # KP-StoryGeneration: Sherlock Holmes
 Created by [Amy Bryce](https://github.com/AmyBryce) & [Theresa Pekarek-Rosin](https://github.com/TPekarekRosin).\
-Github Repository: <https://github.com/TPekarekRosin/KP-StoryGeneration> \
+Github Repository: <https://github.com/TPekarekRosin/KP-StoryGeneration>
 
 ### Setup Instructions
 
